@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <item android:title="@string/lblHinarios">
+        <menu>
+            <item
+                android:id="@+id/nav_tv_rg"
+                android:title="Tinsimu Ta Vakriste (Ronga)" />
+
+            <item
+                android:id="@+id/nav_tv_tg"
+                android:title="Tinsimu Ta Vakriste (Tsonga)" />
+            <item
+                android:id="@+id/nav_cantemos"
+                android:title="@string/lblCantemos" />
+        </menu>
+    </item>
+    <item android:title="@string/lblConcurso" android:visible="true">
+        <menu>
+            <item
+                android:id="@+id/nav_escola_dominical"
+                android:title="@string/lblEdominical" />
+
+            <item
+                android:id="@+id/nav_spj"
+                android:title="@string/lblJuventude" />
+
+            <item
+                android:id="@+id/nav_xilombe"
+                android:title="@string/lblXilombe" />
+        </menu>
+    </item>
+    <item android:title="@string/lblFerramentas">
+        <menu>
+            <item
+                android:id="@+id/nav_favorites"
+                android:title="@string/lblFavoritos"
+                android:visible="true" />
+            <item
+                android:id="@+id/nav_settings"
+                android:title="@string/lblSettings"
+                android:visible="true" />
+            <item
+                android:id="@+id/nav_about"
+                android:title="@string/lblAbout" />
+        </menu>
+    </item>
+
+</menu>
