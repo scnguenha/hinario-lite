@@ -59,4 +59,5 @@
     <string name="lblChurch">Igreja:</string>
     <string name="lblPresbiterian">Igreja Presbiteriana de Moçambique</string>
     <string name="lblPrivacy_policy">Política de Privacidade</string>
+    <string name="lbl_go_to_page">Ir ao Hino</string>
 </resources>

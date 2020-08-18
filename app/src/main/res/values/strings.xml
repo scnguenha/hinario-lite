@@ -25,7 +25,7 @@
     <string name="lbl_of">de</string>
 
     <string name="title_activity_splash_screen" translatable="false">SplashScreen</string>
-    <string name="lblCopyRight" translatable="false">S. C. Nguenha</string>
+    <string name="lblCopyRight" translatable="false">SCN Tech</string>
     <string name="title_activity_spjlist_song" translatable="false">SPJListSong</string>
     <string name="lblConcursoSPJ">Concurso da Juventude</string>
     <string name="lblQuarteto">Duplo Quarteto</string>
@@ -172,4 +172,7 @@
     <string name="title_activity_main2">MainActivity2</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="lbl_go_to_page">Ir ao Hino</string>
+    <string name="lbl_cancel">CANCELAR</string>
+    <string name="lbl_enter_song_number">Introduza o número da canção</string>
 </resources>

@@ -1,0 +1,45 @@
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/lbl_language">
+
+        <ListPreference
+            app:defaultValue="en"
+            app:entries="@array/language_entries"
+            app:entryValues="@array/language_values"
+            app:key="language"
+            app:title="@string/lbl_change_language"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/lbl_text">
+        <ListPreference
+            app:defaultValue="20"
+            app:entries="@array/lyric_size_entries"
+            app:entryValues="@array/lyric_size_values"
+            app:key="lyric_size"
+            app:title="@string/lbl_lyric_size"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue="Playfair"
+            app:entries="@array/lyric_style_entries"
+            app:entryValues="@array/lyric_style_values"
+            app:key="lyric_style"
+            app:title="@string/lbl_lyric_style"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/lbl_other">
+        <ListPreference
+            app:defaultValue="tv_rg"
+            app:entries="@array/book_entries"
+            app:entryValues="@array/book_values"
+            app:key="book"
+            app:title="@string/lbl_change_book"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="dark_mode"
+            app:title="@string/lbl_darkmode" />
+
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

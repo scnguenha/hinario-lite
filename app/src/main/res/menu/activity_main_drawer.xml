@@ -6,43 +6,35 @@
         <menu>
             <item
                 android:id="@+id/nav_tv_rg"
+                android:icon="@drawable/tinsimu_red1"
                 android:title="Tinsimu Ta Vakriste (Ronga)" />
 
             <item
                 android:id="@+id/nav_tv_tg"
+                android:icon="@drawable/tinsimu_red1"
                 android:title="Tinsimu Ta Vakriste (Tsonga)" />
             <item
                 android:id="@+id/nav_cantemos"
+                android:icon="@drawable/cantemos_c1"
                 android:title="@string/lblCantemos" />
         </menu>
     </item>
-    <item android:title="@string/lblConcurso" android:visible="true">
-        <menu>
-            <item
-                android:id="@+id/nav_escola_dominical"
-                android:title="@string/lblEdominical" />
 
-            <item
-                android:id="@+id/nav_spj"
-                android:title="@string/lblJuventude" />
-
-            <item
-                android:id="@+id/nav_xilombe"
-                android:title="@string/lblXilombe" />
-        </menu>
-    </item>
     <item android:title="@string/lblFerramentas">
         <menu>
             <item
                 android:id="@+id/nav_favorites"
+                android:icon="@drawable/favorite_white_36dp"
                 android:title="@string/lblFavoritos"
                 android:visible="true" />
             <item
                 android:id="@+id/nav_settings"
+                android:icon="@drawable/settings"
                 android:title="@string/lblSettings"
                 android:visible="true" />
             <item
                 android:id="@+id/nav_about"
+                android:icon="@drawable/baseline_help_black_48dp"
                 android:title="@string/lblAbout" />
         </menu>
     </item>

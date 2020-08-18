@@ -1,6 +1,8 @@
 package mz.co.scn.hinario_lite.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,22 +19,28 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import mz.co.scn.hinario_lite.R;
+import mz.co.scn.hinario_lite.activity.SongDetailActivity;
 import mz.co.scn.hinario_lite.adapter.SongAdapter;
+import mz.co.scn.hinario_lite.model.Category;
 import mz.co.scn.hinario_lite.model.Song;
+import mz.co.scn.hinario_lite.util.AppConstants;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link CantemosFragment#} factory method to
+ * Use the {@link SongListFragment#} factory method to
  * create an instance of this fragment.
  */
-public class CantemosFragment extends Fragment implements View.OnClickListener, SongAdapter.OnSongSelectedListener {
+public class SongListFragment extends BaseFragment implements View.OnClickListener, SongAdapter.OnSongSelectedListener {
     private static final String TAG = "CantemosFragment";
-    private static final int LIMIT = 50;
+    private String book;
+    private Bundle bundleRecyclerViewState;
+    private Parcelable recyclerViewState = null;
+    private static String STATE = SongListFragment.class.getName();
 
     private RecyclerView recyclerView;
 
@@ -41,14 +49,17 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
 
     private SongAdapter adapter;
 
-    public CantemosFragment() {
+    public SongListFragment() {
         // Required empty public constructor
+    }
+
+    public SongListFragment(String book) {
+        this.book = book;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -64,6 +75,8 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
 
         v.findViewById(R.id.fab_addsongs).setOnClickListener(v1 -> {
             generateCantemosSongs();
+            generateDataRhonga();
+            generateDataChangana();
         });
 
         return v;
@@ -71,13 +84,12 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
 
     private void initFireStore() {
         firestore = FirebaseFirestore.getInstance();
-
-        // Get the 50 restaurants
-        query = firestore.collection("cantemos");
+        // Get all songs from #book
+        query = firestore.collection(book).orderBy("number");
     }
 
     private void initRecyclerView() {
-        if(query == null) {
+        if (query == null) {
             Log.w(TAG, "No query, not initializing RecyclerView");
         }
 
@@ -108,7 +120,7 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
         super.onStart();
 
         // Start listening for Firestore updates
-        if (adapter !=null) {
+        if (adapter != null) {
             adapter.startListening();
         }
     }
@@ -1870,7 +1882,7 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
                 "E, meu Jesus, oh! Leva-me contigo\n" +
                 "Para onde eu goze teu eterno amor.\n"));
 
-        songs.add(new Song("Bem de Manhã", 48, "S. H. 555; T. V. 194", "I\n" +
+        songs.add(new Song("Bem de Manhã", 49, "S. H. 555; T. V. 194", "I\n" +
                 "\n" +
                 "Bem de manhã, embora a Céu sereno\n" +
                 "Pareça um dia calmo anunciar\n" +
@@ -4631,7 +4643,7 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
                 "E com voz do coração\n" +
                 "Quem nos trouxe a Salvação - Vivo está!\n"));
 
-        songs.add(new Song("Minha Vida Consagrada", 141,"T. V. 177", "I\n" +
+        songs.add(new Song("Minha Vida Consagrada", 141, "T. V. 177", "I\n" +
                 "\n" +
                 "Minha vida consagrada seja, inteira, A ti\n" +
                 "Senhor sempre minhas mãos se movem \n" +
@@ -4743,7 +4755,7 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
                 "Bem alegre há-de ser - Quando o Grande\n" +
                 "Rei descer ouvi-lo então dizer - Sou teu Jesus!\n"));
 
-        songs.add(new Song(145,"Glória do Sião",  "Bento Sitoe","", "I\n" +
+        songs.add(new Song(145, "Glória do Sião", "Bento Sitoe", "", "I\n" +
                 "\n" +
                 "És formosa e majestosa - Linda terra dc esplendor\n" +
                 "Sempr’altiva te apresentas - Tu cidade do Senhor\n" +
@@ -5150,9 +5162,1041 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
                 "Louvor ao Deus Divinal\n"));
 
         // Add songs to FirebaseStore
-        CollectionReference reference = firestore.collection("cantemos");
+        CollectionReference reference = firestore.collection(AppConstants.CANTEMOS_BOOK);
         for (Song song : songs) {
-            reference.add(song);
+            //reference.add(song);
+            reference.document(song.getNumber() + "").set(song);
+        }
+    }
+
+    protected void generateDataRhonga() {
+
+        List<Song> songs = new ArrayList<>();
+        List<Category> categories = new ArrayList<>();
+        //Category number 1
+        categories.add(new Category("TA KU GANDRELA XIKWEMBU", 1, "0", "I"));
+        //Category number 1
+        Category categoryI1 = new Category("Ta ku drumisa Hosi", 2, "I", "1");
+        categories.add(categoryI1);
+        songs.add(new Song(1, "Nkhensan Yehova", "", categoryI1, "C"));
+        songs.add(new Song(2, "Muvumbi wa Vhanu", "F. Giardini", categoryI1, "G"));
+        songs.add(new Song(3, "Hosi ya ku ketemuka", "", categoryI1, "E"));
+        songs.add(new Song(4, "Tanani, matiko!", "L. Mason", categoryI1, "A"));
+        songs.add(new Song(5, "A hi nkhenseni Yehova", "", categoryI1, "G"));
+        songs.add(new Song(6, "Bongan Muhanyisi", "", categoryI1, "C"));
+        songs.add(new Song(7, "Hi bonga hi mbilu", "", categoryI1, "A"));
+        songs.add(new Song(8, "Yehova wa phatima", "Piter Ritter", categoryI1, "G"));
+        songs.add(new Song(9, "Hi mani lwa leletiki dambu", "", categoryI1, "F"));
+        songs.add(new Song(10, "Xikwembu hi Yehova", "Samuel Webbe", categoryI1, "F"));
+
+        songs.add(new Song(11, "A hi tlangelen Yehova", "", categoryI1, "C"));
+        songs.add(new Song(12, "Hi ta milengeni ya Hosi", "T. Clark", categoryI1, "F"));
+        songs.add(new Song(13, "A misava i ya Yehova", "Jeremiah Clark", categoryI1, "A"));
+        songs.add(new Song(14, "Oh Yehova, we Hosi Yeru", "", categoryI1, "D"));
+        songs.add(new Song(15, "Drumisani Yehova", "Johann Crüger", categoryI1, "G"));
+        songs.add(new Song(16, "Wa phatima", "Immler", categoryI1, "C"));
+        songs.add(new Song(17, "Halleluya ku Yehova", "V. Schumann", categoryI1, "G"));
+        songs.add(new Song(18, "Hosi ya matilo", "Ar Siciliano", categoryI1, "F"));
+        songs.add(new Song(19, "A ribre dra Yakob", "C. Malan", categoryI1, "C"));
+        songs.add(new Song(20, "Hi randra ku twalisa", "Beethoven", categoryI1, "C"));
+
+        songs.add(new Song(21, "Ndri ta ku tlakuxa, Hosi", "J. Haydn", categoryI1, "A"));
+        songs.add(new Song(22, "Hakunene hi ta yimbelela", "", categoryI1, "Ab"));
+        songs.add(new Song(23, "Tlangela Yehova", "", categoryI1, "Eb"));
+        songs.add(new Song(24, "khinsamelani Yesu", "Willian Shrubsole", categoryI1, "A"));
+        songs.add(new Song(25, "Yimbelelani Hosi", "C. Malan", categoryI1, "Eb"));
+        songs.add(new Song(26, "A hi bongeni Yesu", "", categoryI1, "C"));
+        songs.add(new Song(27, "Yesu a fuma hinkwaswu", "L. Mason", categoryI1, "G"));
+        songs.add(new Song(28, "Hinkwenu vhanu va tiko", "", categoryI1, "G"));
+
+        songs.add(new Song(301, "Bongan, bongan", "", categoryI1, "C"));
+        songs.add(new Song(302, "Xikwembu xi bekile", "", categoryI1, "Eb"));
+        songs.add(new Song(303, "Yimbelelan ku Yehova", "", categoryI1, "F"));
+        songs.add(new Song(304, "Yehova Xikwembu, Hosi ya matilo", "", categoryI1, "Eb"));
+        songs.add(new Song(305, "A lirandru laku, Hosi", "", categoryI1, "C"));
+        songs.add(new Song(306, "Hosi Yesu, lwa nga henhla", "", categoryI1, "Bb"));
+        songs.add(new Song(307, "A hi yimbelelen tinsimu", "", categoryI1, "Bb"));
+
+        //Category number 2
+        Category categoryI2 = new Category("Ta siku dra Hosi(Sonto)", 2, "I", "2");
+        categories.add(categoryI2);
+        songs.add(new Song(29, "Hosi yi vitana vhanu", "", categoryI2, "C"));
+        songs.add(new Song(30, "Kereke draku we Yesu", "J. G. Ebeling", categoryI2, "G"));
+        songs.add(new Song(31, "Hinkwenu lava lulamiki", "", categoryI2, "E"));
+
+        //Category number 3
+        Category categoryI3 = new Category("Ta siku dra Xikwembu", 2, "I", "3");
+        categories.add(categoryI3);
+        songs.add(new Song(32, "Siku dra namunhla", "Ar espanhol", categoryI3, "C"));
+        songs.add(new Song(33, "Hosi yanga, ndra ku djula", "P. Artomius", categoryI3, "C"));
+        songs.add(new Song(34, "Swa nandrika ku ta trhama", "D. Bortniansky", categoryI3, "F"));
+        songs.add(new Song(35, "Ku hundri viki drin'wana", "L. Spohr", categoryI3, "G"));
+        songs.add(new Song(36, "Trhindrekelani vamakweru", "C. Malan", categoryI3, "Bb"));
+        songs.add(new Song(308, "Dra nandrika siku ledri", "", categoryI3, "Bb"));
+
+        //Category number 4
+        Category categoryI4 = new Category("Ta Rito dra Xikwembu", 2, "I", "4");
+        categories.add(categoryI4);
+        songs.add(new Song(37, "Timbilwini teru", "Ar Silesiano", categoryI4, "F"));
+        songs.add(new Song(38, "Timhaka ta ku hanyisa", "W. A. Mozart", categoryI4, "F"));
+        songs.add(new Song(39, "Xihlayelamfuri", "Ar Silesiano", categoryI4, "C"));
+
+        //Category number 5
+        Category categoryI5 = new Category("Ta ku huma tinhlengeletanweni", 2, "I", "5");
+        categories.add(categoryI5);
+        songs.add(new Song(40, "Ku Yehova, Muhanyisi", "", categoryI5, "G"));
+        songs.add(new Song(41, "Xikwembu xi hi heketa", "", categoryI5, "G"));
+        songs.add(new Song(42, "Oh Xikwembu xa ku xwenga", "William Letton Viner", categoryI5, "A"));
+        songs.add(new Song(43, "We Muhuluxi Yesu", "Edward John Hopkins", categoryI5, "A"));
+        songs.add(new Song(44, "Xikwembu Mudumbeki", "Melchior Vulpius", categoryI5, "Eb"));
+        songs.add(new Song(309, "Tatana ha ku tlangela", "T. Clark", categoryI5, "F"));
+
+        //Category number 6
+        Category categoryI6 = new Category("Ta vugandzeli", 2, "I", "6");
+        categories.add(categoryI6);
+        songs.add(new Song(45, "A hi twalisen Muvumbi", "Melchior Vulpius", categoryI6, "D"));
+        songs.add(new Song(46, "Oh Hosi, u nga va na hine", "A. Mottu", categoryI6, "C"));
+        songs.add(new Song(47, "Hi mine wa mudohi", "", categoryI6, "Eb"));
+        songs.add(new Song(48, "We Hosi, hi tretrelele!", "A. Mottu", categoryI6, "C"));
+        songs.add(new Song(49, "Hosi, hi yentxele vurombe", "", categoryI6, "C"));
+        songs.add(new Song(50, "Wene hambana ya Xikwembu", "C. Malan", categoryI6, "C"));
+        songs.add(new Song(51, "Landra Yesu", "J. Fawcett", categoryI6, "Ab"));
+        songs.add(new Song(52, "Halleluya!", "Melchior Vulpius", categoryI6, "D"));
+        songs.add(new Song(53, "A timpralu ta Hosi Yesu", "Chr. Gregor", categoryI6, "D"));
+
+        //Category Level II
+        categories.add(new Category("TA MINKHUVO YA KEREKE", 1, "0", "II"));
+        //Category number 1
+        Category categoryII1 = new Category("Ta ku belekiwa ka Hosi Yesu", 2, "II", "1");
+        categories.add(categoryII1);
+        songs.add(new Song(54, "Le mutini wa Davida", "Henry John Gauntlett", categoryII1, "G"));
+        songs.add(new Song(55, "I man lwa yimbelelaka", "", categoryII1, "C"));
+        songs.add(new Song(56, "Mutin wa Betlehema", "W. J. Kirkpatric", categoryII1, "F"));
+        songs.add(new Song(57, "Xana ma mu tiva n'wana", "", categoryII1, "D"));
+        songs.add(new Song(58, "Yingelan ritu drinene", "", categoryII1, "D"));
+        songs.add(new Song(59, "Dri xongile siku ledri", "F. Gruber", categoryII1, "C"));
+        songs.add(new Song(60, "Hlamalan! Hlamalan!", "", categoryII1, "F"));
+
+        songs.add(new Song(61, "Nowell wa ku ranga", "Risimu ra Khinsimusi", categoryII1, "C"));
+        songs.add(new Song(62, "A hi trhaveni!", "H. G. Naegeli", categoryII1, "C"));
+        songs.add(new Song(310, "Aleluya! A hi tsakeni", "", categoryII1, "A"));
+        songs.add(new Song(311, "I vusiku, hinkwaku!", "", categoryII1, "C"));
+        songs.add(new Song(312, "Hangweyesan, vapfumeli", "", categoryII1, "C"));
+
+        //Category number 2
+        Category categoryII2 = new Category("Ta ku khangula lembe", 2, "II", "2");
+        categories.add(categoryII2);
+        songs.add(new Song(63, "Swoswi lembe dri heliki", "", categoryII2, "Ab"));
+        songs.add(new Song(64, "Tatana, u vumbi a vhanu", "William Croft", categoryII2, "C"));
+        songs.add(new Song(313, "Lembe drimprha", "", categoryII2, "Eb"));
+
+        //Category number 3
+        Category categoryII3 = new Category("Ta siku dra mahanga", 2, "II", "3");
+        categories.add(categoryII3);
+        songs.add(new Song(65, "Hosi yi ya nhingena mutini", "", categoryII3, "D"));
+        songs.add(new Song(66, "Yi ta ku wene Hosi ya ku", "Hamburger M. Handbuch", categoryII3, "C"));
+        songs.add(new Song(67, "A hi twalisen Hosi Yesu", "", categoryII3, "A"));
+
+        //Category number 4
+        Category categoryII4 = new Category("Ta ku fa ka Hosi Yesu", 2, "II", "4");
+        categories.add(categoryII4);
+        songs.add(new Song(68, "Hi yimbelela Yesu", "L. Mason", categoryII4, "G"));
+        songs.add(new Song(69, "Lifu laku, Muhanyisi", "E. Miller", categoryII4, "Eb"));
+        songs.add(new Song(70, "I man lweyi a konyaka", "", categoryII4, "Eb"));
+        songs.add(new Song(71, "Lavisa xihambano", "S. S. Wesley", categoryII4, "Eb"));
+        songs.add(new Song(72, "Hambana ya Xikwembu", "S. S. Wesley", categoryII4, "Eb"));
+        songs.add(new Song(73, "Lavisa, makweru, xihambano", "R. Lowry", categoryII4, "G"));
+        songs.add(new Song(74, "Hosi Yesu, we makweru", "Palestrina", categoryII4, "D"));
+        songs.add(new Song(75, "Ho! we, xihambano", "", categoryII4, "C"));
+        songs.add(new Song(76, "Vonan, hi lwe Nandra wa Yehova", "G. F. Handel", categoryII4, "F"));
+        songs.add(new Song(77, "Muprofeta wa Yehova", "Swazilandia", categoryII4, "E"));
+        songs.add(new Song(78, "We, Muvumbiwa weru", "L. Hassler", categoryII4, "D"));
+        songs.add(new Song(79, "Gandrela Yesu xihambanweni", "E. W. Bullinger", categoryII4, "A"));
+        songs.add(new Song(80, "Lifu laku we Hosi Yesu", "Freylinghausen", categoryII4, "Bb"));
+        songs.add(new Song(81, "Vonani Yesu Getsemane", "H. G. Naegeli", categoryII4, "G"));
+
+        //Category number 5
+        Category categoryII5 = new Category("Ta ku pfuka ka Hosi Yesu", 2, "II", "5");
+        categories.add(categoryII5);
+        songs.add(new Song(82, "Yesu a pfukile ku fen", "", categoryII5, "C"));
+        songs.add(new Song(83, "Halleluya! a pfukile", "", categoryII5, "G"));
+        songs.add(new Song(84, "A pfukile, Mutiruli weru", "F. S. Laur", categoryII5, "C"));
+        songs.add(new Song(85, "A hluli xira Yesu", "Melchior Teschner", categoryII5, "C"));
+        songs.add(new Song(86, "Ha ku drumisa", "G. F. Handel", categoryII5, "C"));
+        songs.add(new Song(87, "Yesu Kriste a pfukile", "Lyra Davidica", categoryII5, "C"));
+        songs.add(new Song(314, "Vamakweru, i siku dra Paska", "", categoryII5, "C"));
+
+        //Category number 6
+        Category categoryII6 = new Category("Ta ku tlhantuka ka Hosi Yesu", 2, "II", "6");
+        categories.add(categoryII6);
+        songs.add(new Song(88, "Twalisani Yesu", "", categoryII6, "D"));
+        songs.add(new Song(89, "A hi twalisen Hosi Yesu", "G. F. Handel", categoryII6, "G"));
+        songs.add(new Song(90, "Hosi Yesu a hluli xira", "Negro Spiritual", categoryII6, "F"));
+
+        //Category number 7
+        Category categoryII7 = new Category("Ta Moya lowa ku xwenga", 2, "II", "7");
+        categories.add(categoryII7);
+        songs.add(new Song(91, "Moya wanga wa ku djula", "Ph. Nicolai", categoryII7, "F"));
+        songs.add(new Song(92, "Tana Moya wa ku xwenga", "", categoryII7, "Eb"));
+        songs.add(new Song(93, "Oho! Moya wa Yehova", "G. J. Vogler", categoryII7, "A"));
+        songs.add(new Song(94, "A mutini wa le Sion", "G. Makavi", categoryII7, "D"));
+        songs.add(new Song(95, "Moya lowu pfaka tilweni", "Th. Bovet", categoryII7, "E"));
+        songs.add(new Song(96, "Hi vavisiwa hi mumu", "", categoryII7, "Bb"));
+
+        //Category number 8
+        Category categoryII8 = new Category("Ta masimu", 2, "II", "8");
+        categories.add(categoryII8);
+        songs.add(new Song(97, "Tiko dra kweru", "W. H. Monk", categoryII8, "Eb"));
+        songs.add(new Song(98, "Ha ku nkhensa Nkulukumba", "M. E. M.", categoryII8, "G"));
+        songs.add(new Song(99, "Loko xidrimu xi tlhasa", "D. C. Marivate", categoryII8, "Eb"));
+        songs.add(new Song(100, "A timbewu teru", "M. E. M.", categoryII8, "C"));
+
+        //Category Level III
+        categories.add(new Category("TA KU HANYA KA VANA VA XIKWEMBU", 1, "0", "III"));
+        //Category number 1
+        Category categoryIII1 = new Category("Ta ku vitana vanhu", 2, "III", "1");
+        categories.add(categoryIII1);
+        songs.add(new Song(101, "N'wine lava pfaka tikweni", "", categoryIII1, "C"));
+        songs.add(new Song(102, "N'wana wa lipfalu", "", categoryIII1, "Bb"));
+        songs.add(new Song(103, "We makweru!", "", categoryIII1, "F"));
+        songs.add(new Song(104, "Mubrisi lwenene", "", categoryIII1, "A"));
+        songs.add(new Song(105, "Tana ku Yesu, u nga hlweli", "G. F. Root", categoryIII1, "Bb"));
+        songs.add(new Song(106, "Tana, tana", "W. H. Doane", categoryIII1, "Eb"));
+        songs.add(new Song(107, "Henhla ka lwandle", "Ph. P. Bliss", categoryIII1, "Bb"));
+        songs.add(new Song(108, "Yingela, we, makweru", "", categoryIII1, "E"));
+        songs.add(new Song(109, "Yesu a yimi nyangweni", "", categoryIII1, "C"));
+        songs.add(new Song(110, "Landra Yesu", "J. Fawcett", categoryIII1, "Ab"));
+
+        songs.add(new Song(111, "Hi mine, ndri yima nyangweni", "", categoryIII1, "F"));
+        songs.add(new Song(112, "A vutomin lebri taka", "", categoryIII1, "F"));
+        songs.add(new Song(113, "Yo! vakweru lavanyingi", "", categoryIII1, "G"));
+        songs.add(new Song(114, "Wene N'wana wa Davida", "Daniel Read", categoryIII1, "G"));
+        songs.add(new Song(115, "Wen, u drilaka", "Ph. P. Bliss", categoryIII1, "Bb"));
+        songs.add(new Song(116, "Yingelani! Yingelani!", "Geo. F. Root", categoryIII1, "Eb"));
+        songs.add(new Song(117, "Hosi yi ku vitanile", "", categoryIII1, "Ab"));
+        songs.add(new Song(118, "N'wine n'wi djulaka vutomi", "", categoryIII1, "E"));
+        songs.add(new Song(119, "Trhindrekela! Trhindrekela!", "Negro Spiritual", categoryIII1, "F"));
+
+        songs.add(new Song(120, "Vamatiko yingelani", "I. McGranahan", categoryIII1, "G"));
+        songs.add(new Song(121, "Xana n'wa dri tiva", "Sankey", categoryIII1, "F"));
+        songs.add(new Song(122, "Ndri ya tilweni", "Negro Spiritual", categoryIII1, "E"));
+        songs.add(new Song(123, "Loko n'wi djula ku tiva", "C. Brentano", categoryIII1, "F"));
+        songs.add(new Song(315, "Yingela mhaka ya Hosi", "", categoryIII1, "C"));
+
+        //Category number 2
+        Category categoryIII2 = new Category("Ta ku tisola ni ku pfumela", 2, "III", "2");
+        categories.add(categoryIII2);
+        songs.add(new Song(124, "Hosi Yesu, lavisa", "", categoryIII2, "D"));
+        songs.add(new Song(125, "U nkulukumba Yehova", "J. B. Dykes", categoryIII2, "Eb"));
+        songs.add(new Song(126, "Ndri ni khombo, ndri ta ntsena", "", categoryIII2, "G"));
+        songs.add(new Song(127, "Ndri ni khombo, ndri ta ntsena", "Bradbury", categoryIII2, "Eb"));
+        songs.add(new Song(128, "We, Xikwembu Tatana!", "E. A. J. Monaisa", categoryIII2, "Eb"));
+        songs.add(new Song(129, "Hosi, Yesu, a swi kone", "", categoryIII2, "C"));
+        songs.add(new Song(130, "Hi mine wa mudohi", "", categoryIII2, "Eb"));
+
+        songs.add(new Song(131, "Ndri ta ku wene, Hosi", "G. Coll", categoryIII2, "F"));
+        songs.add(new Song(132, "Ndra tilaya, Hosi Yesu", "", categoryIII2, "A"));
+        songs.add(new Song(133, "Ku yendren kwanga misaven", "", categoryIII2, "G"));
+        songs.add(new Song(134, "Hinkweru vhanu hi dohile", "Sir. H. Oakeley", categoryIII2, "A"));
+        songs.add(new Song(135, "Ndri drivakekiwile", "S. Malale", categoryIII2, "F"));
+        songs.add(new Song(136, "A wu te Mfumo waku", "Melchior Teschner", categoryIII2, "C"));
+        songs.add(new Song(137, "Ndri xanisiwa hi swidoho swanga", "Sankey-Stebbins", categoryIII2, "A"));
+        songs.add(new Song(138, "Yingelan n'wine vamakweru!", "D. C. Marivate", categoryIII2, "D"));
+        songs.add(new Song(316, "Oho, Yesu, Hosi yanga", "", categoryIII2, "C"));
+
+        //Category number 3
+        Category categoryIII3 = new Category("Ta ku dumba Muhuluxi", 2, "III", "3");
+        categories.add(categoryIII3);
+        songs.add(new Song(139, "Ndra ku nkhensa", "", categoryIII3, "F"));
+        songs.add(new Song(140, "Ndra swi randra ku yingela wene", "C. H. Purday", categoryIII3, "G"));
+        songs.add(new Song(141, "Ndri n'wanaku", "", categoryIII3, "Ab"));
+        songs.add(new Song(142, "Ndri beleka hi Yesu", "W. H. Doane", categoryIII3, "G"));
+        songs.add(new Song(143, "Makweru, ndri ku kumile", "Frank", categoryIII3, "F"));
+        songs.add(new Song(144, "Yesu, Mutiruli", "R. Lowry", categoryIII3, "Ab"));
+        songs.add(new Song(145, "Swa nadrika, Hosi yanga", "", categoryIII3, "Ab"));
+        songs.add(new Song(146, "Tiko ledri dri tele swihono", "", categoryIII3, "F"));
+        songs.add(new Song(147, "Mbilu yanga yi kota ku rula", "G. T. Caldbeck", categoryIII3, "C"));
+        songs.add(new Song(148, "Ndri dumbi yene ntsena", "", categoryIII3, "D"));
+        songs.add(new Song(149, "Kusuhi na wene", "L. Mason", categoryIII3, "G"));
+        songs.add(new Song(150, "Ku Yesu ndri lavisela", "F. Mendelssohn", categoryIII3, "G"));
+
+        songs.add(new Song(151, "Yesu, Hosi ya lirandru", "John Stainer", categoryIII3, "E"));
+        songs.add(new Song(152, "Hinkwaku na Yesu", "", categoryIII3, "Eb"));
+        songs.add(new Song(153, "Yesu wa ndri tiva", "Negro Spiritual", categoryIII3, "F"));
+        songs.add(new Song(154, "Yesu, hi wene kunene", "", categoryIII3, "E"));
+        songs.add(new Song(155, "A mintlhan'wini lemi suvisaka", "W. H. Monk", categoryIII3, "Eb"));
+        songs.add(new Song(156, "Ndri tlakuxa moya wanga", "", categoryIII3, "G"));
+        songs.add(new Song(157, "Yehova ndri mu laviseli", "Robert Simpson", categoryIII3, "A"));
+        songs.add(new Song(158, "Namunhla ndri kumile xinyonxiso", "Jean Sibelius", categoryIII3, "F"));
+        songs.add(new Song(159, "Ndri fihle a khokholweni", "Hartsough", categoryIII3, "Eb"));
+        songs.add(new Song(160, "A hosi la a makari kweru", "", categoryIII3, "E"));
+        songs.add(new Song(161, "Ku wene Oh Yesu", "D. Bortniansky", categoryIII3, "C"));
+
+        //Category number 4
+        Category categoryIII4 = new Category("Ta ku nyoxela ku huluxiwa", 2, "III", "4");
+        categories.add(categoryIII4);
+        songs.add(new Song(162, "Dra nandrika", "", categoryIII4, "A"));
+        songs.add(new Song(163, "Nkhensa Hika dranga", "R. T. Caluza", categoryIII4, "G"));
+        songs.add(new Song(164, "Ndri kumile nakulori", "", categoryIII4, "A"));
+        songs.add(new Song(165, "Ritu dri twala henhla", "Dykes", categoryIII4, "Ab"));
+        songs.add(new Song(166, "Ndri ta nkhensa hi masiku", "", categoryIII4, "D"));
+        songs.add(new Song(167, "Yingelani ritu drikulu", "McGranahan", categoryIII4, "D"));
+        songs.add(new Song(168, "A hi trhaven, vamakweru", "", categoryIII4, "A"));
+        songs.add(new Song(169, "Yesu a ndri huluxile", "Ch. H. Gabriel", categoryIII4, "A"));
+        songs.add(new Song(317, "Fa ndri lahlekile", "", categoryIII4, "C"));
+
+        //Category number 5
+        Category categoryIII5 = new Category("Ta ku tinyiketa ka Muhuluxi", 2, "III", "5");
+        categories.add(categoryIII5);
+        songs.add(new Song(170, "Xikwembu, we Hosi, yanga", "", categoryIII5, "F"));
+        songs.add(new Song(171, "Mutiruli ni Hosi yanga", "R. W. Beaty", categoryIII5, "F"));
+        songs.add(new Song(172, "Tamela voko dranga", "F. Silcher", categoryIII5, "F"));
+        songs.add(new Song(173, "Swi xongi ku ku tirela", "M. Russell", categoryIII5, "Eb"));
+        songs.add(new Song(174, "Moya ni miri yanga", "J. F. Knapp", categoryIII5, "Eb"));
+        songs.add(new Song(175, "Ndra ku djula we he mixo", "F. Mendelssohn", categoryIII5, "D"));
+        songs.add(new Song(176, "Hosi Yesu, mutiruli", "", categoryIII5, "E"));
+        songs.add(new Song(177, "Mbilwin yanga, Hosi Yesu", "", categoryIII5, "G"));
+        songs.add(new Song(178, "Yesu, lwey u ndri feliki", "F. A. Schulz", categoryIII5, "F"));
+        songs.add(new Song(179, "Ndri trimbe, wene Hosi", "G. W. Martin", categoryIII5, "E"));
+        songs.add(new Song(180, "Ndri djula ku va mhunu wa Yesu", "Negro Spiritual", categoryIII5, "F"));
+
+        songs.add(new Song(181, "Ndri nyiki Tatana!", "P. P. Bliss", categoryIII5, "Eb"));
+        songs.add(new Song(182, "Mbilwin yanga, Hosi", "John Knox Bokwe", categoryIII5, "F"));
+        songs.add(new Song(183, "Ndri n'wanaku, Hosi Yesu", "", categoryIII5, "Eb"));
+        songs.add(new Song(184, "O Yesu, Hosi ya timpralu", "A. L. Peace", categoryIII5, "Ab"));
+        songs.add(new Song(185, "Tatana wa lirandru", "", categoryIII5, "E"));
+        songs.add(new Song(318, "Yesu lwa ndri randraka", "", categoryIII5, "Eb"));
+        songs.add(new Song(319, "Ndlelen ya ku ndri randra", "", categoryIII5, "A"));
+
+        //Category number 6
+        Category categoryIII6 = new Category("Ta ku lwa ni ku hlula ka kereke", 2, "III", "6");
+        categories.add(categoryIII6);
+        songs.add(new Song(186, "Siman Lisimu la yimpi", "T. R. Southgate", categoryIII6, "G"));
+        songs.add(new Song(187, "Dumba Yesu, mukriste", "", categoryIII6, "F"));
+        songs.add(new Song(188, "Pfukan, n'wi tinhena!", "Ch. Lockhark", categoryIII6, "Eb"));
+        songs.add(new Song(189, "Hi siku dra khombo", "H. R. Bishop", categoryIII6, "F"));
+        songs.add(new Song(190, "Pfukan he! tinhena!", "A. S. Sullivan", categoryIII6, "F"));
+
+        songs.add(new Song(191, "Yesu i Mufumi weru", "", categoryIII6, "G"));
+        songs.add(new Song(192, "Lihlampfu leru hi Yesu", "M. Luther", categoryIII6, "D"));
+        songs.add(new Song(193, "Hloma matlhari, we mukriste", "John Hatton", categoryIII6, "Eb"));
+        songs.add(new Song(194, "Hitekani, loko tilo dri xile", "S. Zuberbuhler", categoryIII6, "C"));
+        songs.add(new Song(195, "A ku na mhunu", "Negro Spititual", categoryIII6, "G"));
+        songs.add(new Song(196, "Mbilwin yanga Hosi", "Swazilandia", categoryIII6, "G"));
+        songs.add(new Song(197, "Yimpi leyi hi yi lwaka", "J. Haydn", categoryIII6, "G"));
+        songs.add(new Song(198, "Xidzedze", "D. C. Marivate", categoryIII6, "G"));
+
+        //Category number 7
+        Category categoryIII7 = new Category("Mahlomulweni", 2, "III", "7");
+        categories.add(categoryIII7);
+        songs.add(new Song(199, "Timhaka leta ku bindra", "Converse", categoryIII7, "F"));
+        songs.add(new Song(200, "Trhika wene, moya wanga", "", categoryIII7, "E"));
+
+        songs.add(new Song(201, "Bratrhu dri famba ha hombe", "", categoryIII7, "C"));
+        songs.add(new Song(202, "Hosi ni tatana wanga", "", categoryIII7, "Eb"));
+        songs.add(new Song(203, "We Yehova, Hosi yanga", "", categoryIII7, "F"));
+        songs.add(new Song(204, "Ndri mufambi misaveni", "Hastings", categoryIII7, "D"));
+        songs.add(new Song(205, "Swanga mhuti yi drilaka", "", categoryIII7, "G"));
+        songs.add(new Song(206, "Yentxa, Hosi yanga", "C. M. Weber", categoryIII7, "Eb"));
+        songs.add(new Song(207, "A ku vilela hinkwaku", "Negro Spiritual", categoryIII7, "G"));
+        songs.add(new Song(208, "Yingela, Hosi, n'wanaku", "R. Lowry", categoryIII7, "G"));
+        songs.add(new Song(320, "Hloma yimpi ya Hosi", "G. T. Webb", categoryIII7, "F"));
+        songs.add(new Song(321, "A ku khumba nkhantxu wakwe", "", categoryIII7, "D"));
+        songs.add(new Song(322, "Loko ndri vaviseka", "", categoryIII7, "F"));
+
+        //Category number 8
+        Category categoryIII8 = new Category("Ta ku hlangana na Hosi Yesu", 2, "III", "8");
+        categories.add(categoryIII8);
+        songs.add(new Song(209, "Yesu, fuma mbilu yanga", "", categoryIII8, "Ab"));
+        songs.add(new Song(210, "Yesu, Yesu, We Mutiruli", "J. Brahms", categoryIII8, "Eb"));
+
+        songs.add(new Song(211, "Ntrhurini wa misava leyi", "A. Bost", categoryIII8, "C"));
+        songs.add(new Song(212, "Lirandru la Yesu Kriste", "", categoryIII8, "C"));
+        songs.add(new Song(213, "A hi tlangelen lirandru", "", categoryIII8, "D"));
+        songs.add(new Song(214, "Wa ndri randra", "", categoryIII8, "G"));
+
+        //Category number 9
+        Category categoryIII9 = new Category("Ta ku rhurha ni ta vutomi bya tilo", 2, "III", "9");
+        categories.add(categoryIII9);
+        songs.add(new Song(215, "Muti lo xongiki ngopfu", "G. F. Handel", categoryIII9, "F"));
+        songs.add(new Song(216, "Tatana wa ndri vita", "", categoryIII9, "F"));
+        songs.add(new Song(217, "Hi nkhensa lifu la Yesu", "", categoryIII9, "Eb"));
+        songs.add(new Song(218, "Ndri nga muyeni lomu", "Melodia Popular", categoryIII9, "D"));
+        songs.add(new Song(219, "Masiku yeru ma fana hinkwawu", "", categoryIII9, "C"));
+        songs.add(new Song(220, "Masiku yanga ma hela", "R. Lowry", categoryIII9, "Eb"));
+
+        songs.add(new Song(221, "A tilweni!", "Ch. F. Voigtlaender", categoryIII9, "C"));
+        songs.add(new Song(222, "Drimukani kaya tilwen", "", categoryIII9, "A"));
+        songs.add(new Song(223, "Tiku dra Xikwembu dri kone", "", categoryIII9, "G"));
+        songs.add(new Song(224, "A hi suken, hi muka kanana", "", categoryIII9, "F"));
+        songs.add(new Song(225, "Yerusalema wa le henhla", "", categoryIII9, "Eb"));
+        songs.add(new Song(226, "Xa i vaman lava hi va vonaka", "", categoryIII9, "Eb"));
+        songs.add(new Song(227, "Vaweti! Hi welela", "", categoryIII9, "A"));
+        songs.add(new Song(228, "Swa nandrika ku drimuka", "", categoryIII9, "F"));
+        songs.add(new Song(229, "Ku ni tiku draku xonga", "", categoryIII9, "Eb"));
+        songs.add(new Song(230, "Lavisani Hosi Yesu ni tintrumi", "Swazilandia", categoryIII9, "C"));
+
+        songs.add(new Song(323, "Xana vamakweru", "", categoryIII9, "F"));
+        songs.add(new Song(324, "Swoswi hi sukile", "", categoryIII9, "G"));
+        songs.add(new Song(325, "Vhanu va matiko hinkwawu", "", categoryIII9, "C"));
+
+
+        //Category Level IV
+        categories.add(new Category("TA KEREKE NI MINDANGU NI TIKO", 1, "0", "IV"));
+        //Category number 1
+        Category categoryIV1 = new Category("Ta ku tekana", 2, "IV", "1");
+        categories.add(categoryIV1);
+        songs.add(new Song(231, "Xawan Vatekani", "Corelli", categoryIV1, "C"));
+        songs.add(new Song(232, "Hosi, yamukela swoswi", "J. B. Dykes", categoryIV1, "D"));
+        songs.add(new Song(233, "A khale loko fa hi vatrongwana", "Ph. P. Bliss", categoryIV1, "D"));
+        songs.add(new Song(234, "Hi nkhensile hi timbilu", "J. B. Dykes", categoryIV1, "C"));
+        songs.add(new Song(235, "Xikwembu, vateki lava", "", categoryIV1, "Eb"));
+        songs.add(new Song(236, "N'wi vamakweru, ha mi tlangela", "", categoryIV1, "D"));
+
+        //Category number 2
+        Category categoryIV2 = new Category("Ta ku trakamisa ni ku yamukela vana", 2, "IV", "2");
+        categories.add(categoryIV2);
+        songs.add(new Song(237, "Tiya, nakulori", "I. Pleyel", categoryIV2, "Bb"));
+        songs.add(new Song(238, "Hosi Yesu, yamukela swoswi", "", categoryIV2, "Eb"));
+        songs.add(new Song(239, "Le Galileya, Hosi Yesu", "I. D. Sankey", categoryIV2, "Eb"));
+        songs.add(new Song(240, "Tiyisa, mutrakamisiwa", "William Boyd", categoryIV2, "G"));
+        songs.add(new Song(326, "A makari kweru", "", categoryIV2, "F"));
+
+        //Category number 3
+        Category categoryIV3 = new Category("Ta ntiro wa Xilalelo", 2, "IV", "3");
+        categories.add(categoryIV3);
+        songs.add(new Song(241, "Yesu kateko dra timbilu", "H. P. Smith", categoryIV3, "E"));
+        songs.add(new Song(242, "U hi phamelile", "P. A. Bost", categoryIV3, "G"));
+        songs.add(new Song(243, "Ndra ku hlalela wene", "", categoryIV3, "F"));
+        songs.add(new Song(244, "Yesu a fambile", "H. G. Naegeli", categoryIV3, "G"));
+        songs.add(new Song(245, "Ndri trhindrekela wene", "R. Saillens", categoryIV3, "G"));
+
+        //Category number 4
+        Category categoryIV4 = new Category("Ta ku khanguriwa ka yindlu ya Xikwembu", 2, "IV", "4");
+        categories.add(categoryIV4);
+        songs.add(new Song(246, "Hi tlangela ngopfu vatiri", "T. R. Matthews", categoryIV4, "Eb"));
+        songs.add(new Song(247, "Namunhla, siku ledri kulu", "A. L. Peace", categoryIV4, "Ab"));
+        songs.add(new Song(248, "Famban, na mi tlakuxa muhlu", "J. Bortnianski", categoryIV4, "C"));
+        songs.add(new Song(249, "A hi nkhensen, a hi bongeni", "", categoryIV4, "Bb"));
+        songs.add(new Song(250, "Ha drimuka kambe", "D. C. Marivate", categoryIV4, "Eb"));
+        songs.add(new Song(327, "Malandra ya Yehova", "", categoryIV4, "F"));
+        songs.add(new Song(328, "Hi yimbelela tiko", "", categoryIV4, "C"));
+
+
+        //Category number 5
+        Category categoryIV5 = new Category("Ta mixo ni madambu", 2, "IV", "5");
+        categories.add(categoryIV5);
+        songs.add(new Song(251, "Yehova Xikwembu", "R. Lowry", categoryIV5, "G"));
+        songs.add(new Song(252, "Vusiku bri hundrile", "L. Mason", categoryIV5, "F"));
+        songs.add(new Song(253, "Leswi adambu dri humiki", "L. Neiss", categoryIV5, "Eb"));
+        songs.add(new Song(254, "N'winyi wa ku vonekisa", "W. Bradbury", categoryIV5, "Ab"));
+        songs.add(new Song(255, "Leswi dambu dri peliki", "W. Bradbury", categoryIV5, "Ab"));
+        songs.add(new Song(256, "Trhama, Hosi, leswi dri peliki", "W. H. Monk", categoryIV5, "Eb"));
+        songs.add(new Song(257, "Tatan, vana va Tatana", "D. Bortniansky", categoryIV5, "F"));
+        songs.add(new Song(258, "Namunhla siku dri helile", "C. C. Scholefield", categoryIV5, "A"));
+        songs.add(new Song(259, "Tanan, hi hlengeletana", "", categoryIV5, "G"));
+        songs.add(new Song(260, "Ndra khongota, dri pelile", "Geo. Stebbings", categoryIV5, "A"));
+
+
+        //Category number 6
+        Category categoryIV6 = new Category("Ta mindangu", 2, "IV", "6");
+        categories.add(categoryIV6);
+        songs.add(new Song(261, "Ku xonga amiti leyi", "D. Bortniansky", categoryIV6, "Eb"));
+        songs.add(new Song(262, "Ku kateka mhunu", "F. J. Haydn", categoryIV6, "G"));
+        songs.add(new Song(263, "Hosi, amindangu yeru", "Hurndall", categoryIV6, "F"));
+
+
+        //Category number 7
+        Category categoryIV7 = new Category("Ta Lavapswa", 2, "IV", "7");
+        categories.add(categoryIV7);
+        songs.add(new Song(264, "N'wi madyaha, drimuakan!", "", categoryIV7, "G"));
+        songs.add(new Song(265, "Antamu wa mbilu yanga", "", categoryIV7, "F"));
+        songs.add(new Song(266, "Tinhena ta Hosi", "Adeste Fideles", categoryIV7, "G"));
+        songs.add(new Song(267, "Oh! Yesu Muhanyisi", "Negro Spiritual", categoryIV7, "F"));
+        songs.add(new Song(268, "Wokani andrilo!", "", categoryIV7, "F"));
+        songs.add(new Song(269, "Loko hi tlhangana", "J. P. E. Hartmann", categoryIV7, "F"));
+        songs.add(new Song(270, "Ndri navela ku tirela Yesu", "", categoryIV7, "F"));
+
+        songs.add(new Song(271, "A ritu dra Xikwembu", "", categoryIV7, "F"));
+        songs.add(new Song(272, "A drin'wana siku", "", categoryIV7, "F"));
+        songs.add(new Song(273, "Hi dondrise ku yentxa", "", categoryIV7, "G"));
+        songs.add(new Song(274, "We, Davida, u yimba harpa", "", categoryIV7, "F"));
+        songs.add(new Song(275, "Daniel hi lweyi", "", categoryIV7, "D"));
+
+        //Category number 8
+        Category categoryIV8 = new Category("Ta ku hlangana ka timbilu ta lava ku kateka", 2, "IV", "8");
+        categories.add(categoryIV8);
+        songs.add(new Song(276, "Hi li: Xawan", "", categoryIV8, "C"));
+        songs.add(new Song(277, "Hosi a yimi heketeni", "", categoryIV8, "D"));
+        songs.add(new Song(278, "A hi nkhensen nhlengeletanu", "C. Malan", categoryIV8, "C"));
+        songs.add(new Song(279, "Ku nandrika ka wo ntlhanganu", "R. T. Caluza", categoryIV8, "Bb"));
+
+
+        //Category number 9
+        Category categoryIV9 = new Category("Ta ku fambisa Rito", 2, "IV", "9");
+        categories.add(categoryIV9);
+        songs.add(new Song(280, "Hangwesan miya va vita", "", categoryIV9, "F"));
+        songs.add(new Song(281, "Va lomu ni vamatiko", "", categoryIV9, "C"));
+        songs.add(new Song(282, "Brala", "", categoryIV9, "C"));
+        songs.add(new Song(283, "Pfuka, yimpi ya Yesu", "G. T. Webb", categoryIV9, "Bb"));
+        songs.add(new Song(284, "A hi pfuken, Hi ya lwela", "", categoryIV9, "C"));
+        songs.add(new Song(285, "Lavisan tihambana", "", categoryIV9, "Eb"));
+        songs.add(new Song(286, "Pfuka, yimpi ya Yehova", "", categoryIV9, "G"));
+        songs.add(new Song(287, "Huwa ya le Makedoniya", "", categoryIV9, "Eb"));
+        songs.add(new Song(329, "I wa yini, nkosi lowu", "", categoryIV9, "C"));
+        songs.add(new Song(330, "Hloma yimpi ya Hosi!", "G. T. Webb", categoryIV9, "Bb"));
+
+        //Category number 10
+        Category categoryIV10 = new Category("Ta ku buya ka Hosi Yesu", 2, "IV", "10");
+        categories.add(categoryIV10);
+        songs.add(new Song(288, "Hi lwa taka, Hosi Yesu", "Clark", categoryIV10, "Eb"));
+        songs.add(new Song(289, "Tana, Oh Yesu", "H. Lutteroth", categoryIV10, "Eb"));
+        songs.add(new Song(290, "Pfukan, mi hiteka swoswi", "G. F. Handel", categoryIV10, "Eb"));
+
+        //Category number 11
+        Category categoryIV11 = new Category("Ta tiko", 2, "IV", "11");
+        categories.add(categoryIV11);
+        songs.add(new Song(291, "A tiko dra kweru", "D. Bortnianski", categoryIV11, "C"));
+        songs.add(new Song(292, "Loko Yehova afa a hi trhika", "Genevan Psalter", categoryIV11, "G"));
+        songs.add(new Song(293, "Hosi katekisa Afrika!", "E. Sontonga", categoryIV11, "Eb"));
+        songs.add(new Song(294, "Oh Hosi katekisa a tiko", "J. Dalcroze", categoryIV11, "C"));
+
+        //Category number 12
+        Category categoryIV12 = new Category("Ta vatitroni", 2, "IV", "12");
+        categories.add(categoryIV12);
+        songs.add(new Song(295, "Bandla ledrinene", "", categoryIV12, "Bb"));
+        songs.add(new Song(296, "Yiman, vatitroni, yiman", "", categoryIV12, "G"));
+        songs.add(new Song(297, "A hi famben, hi tiyisela", "", categoryIV12, "F"));
+        songs.add(new Song(298, "Ndri famba na ndri trhavile", "Negro Spiritual", categoryIV12, "C"));
+        songs.add(new Song(299, "A tiko dreru dra lahleka", "J. Hatton", categoryIV12, "Eb"));
+        songs.add(new Song(300, "Yingelani n'wi vamakweru", "R. T. Caluza", categoryIV12, "Bb"));
+
+
+        // Add songs to FirebaseStore
+        CollectionReference reference = firestore.collection(AppConstants.TV_RONGA_BOOK);
+        for (Song song : songs) {
+            reference.document(song.getNumber() + "").set(song);
+        }
+
+        // Add categories to FirebaseStore
+        CollectionReference categoryReference = firestore.collection(AppConstants.TV_CATEGORY_RG);
+        for (Category category : categories) {
+            categoryReference.add(category);
+        }
+    }
+
+    /**
+     * This methot is used to generate all songs belongs to tsonga book
+     */
+    protected void generateDataChangana() {
+        List<Song> songs = new ArrayList<>();
+        List<Category> categories = new ArrayList<>();
+        //Super Category Level 1
+        categories.add(new Category("TA KU GANDZELA XIKWEMBU", 1, "0", "I"));
+        //Category number 1
+        Category categoryI1 = new Category("Ta ku dzunisa Hosi", 2, "I", "1");
+        categories.add(categoryI1);
+        songs.add(new Song(1, "Nkhensani Yehova", "", categoryI1, "C"));
+        songs.add(new Song(2, "Ka Mumbi wa vanhu", "F. Giardini", categoryI1, "G"));
+        songs.add(new Song(3, "Hosi ya ku vonakala", "", categoryI1, "E"));
+        songs.add(new Song(4, "Tanani, matiko!", "L. Mason", categoryI1, "A"));
+        songs.add(new Song(5, "A hi nkenseni Yehova", "", categoryI1, "G"));
+        songs.add(new Song(6, "Vongani Muhanyisi", "", categoryI1, "C"));
+        songs.add(new Song(7, "Hi dzuna hi mbilu", "", categoryI1, "A"));
+        songs.add(new Song(8, "Yehova wa saseka", "Piter Ritter", categoryI1, "G"));
+        songs.add(new Song(9, "I mani la leriseke dyambu", "", categoryI1, "F"));
+        songs.add(new Song(10, "Xikwembu i Yehova", "Samuel Webbe", categoryI1, "F"));
+
+        songs.add(new Song(11, "A hi tlangeleni Yehova", "", categoryI1, "C"));
+        songs.add(new Song(12, "Hi ta milengeni ya Hosi", "T. Clark", categoryI1, "F"));
+        songs.add(new Song(13, "Misava i yakwe", "Jeremiah Clark", categoryI1, "A"));
+        songs.add(new Song(14, "O! Yehova, Hosi ya hina", "", categoryI1, "D"));
+        songs.add(new Song(15, "Dzunisani Yehova", "Johann Crüger", categoryI1, "G"));
+        songs.add(new Song(16, "Wa kwetsima", "Immler", categoryI1, "C"));
+        songs.add(new Song(17, "Aleluya ka Yehova", "V. Schumann", categoryI1, "G"));
+        songs.add(new Song(18, "Hosi ya matilo", "Ar Siciliano", categoryI1, "F"));
+        songs.add(new Song(19, "Khokholo ra hina", "C. Malan", categoryI1, "C"));
+        songs.add(new Song(20, "Hi rhandza ku twarisa", "Beethoven", categoryI1, "C"));
+
+        songs.add(new Song(21, "Ndzi ta ku kurisa, Hosi", "J. Haydn", categoryI1, "A"));
+        songs.add(new Song(22, "Ha kunene hi ta yimbelela", "", categoryI1, "Ab"));
+        songs.add(new Song(23, "Tlangela Yehova", "", categoryI1, "Eb"));
+        songs.add(new Song(24, "Nkhinsamelani Yesu", "Willian Shrubsole", categoryI1, "A"));
+        songs.add(new Song(25, "Yimbelelani Hosi", "C. Malan", categoryI1, "Eb"));
+        songs.add(new Song(26, "A hi vongeni Yesu", "", categoryI1, "C"));
+        songs.add(new Song(27, "Yesu wa fuma hinkwaswo", "L. Mason", categoryI1, "G"));
+        songs.add(new Song(28, "Hinkwenu, vanhu va tiko", "", categoryI1, "G"));
+
+        songs.add(new Song(301, "Vongani, vongani", "", categoryI1, "C"));
+        songs.add(new Song(302, "Xikwembu xi vekile", "", categoryI1, "Eb"));
+        songs.add(new Song(303, "Yimbelelani ka Yehova", "", categoryI1, "F"));
+        songs.add(new Song(304, "Yehova Xikwembu, Hosi ya matilo", "", categoryI1, "Eb"));
+        songs.add(new Song(305, "Rirhandzu ra wena, Hosi", "", categoryI1, "C"));
+        songs.add(new Song(306, "Hosi Yesu, la nge henhla", "", categoryI1, "Bb"));
+        songs.add(new Song(307, "A hi yimbeleleni tinsimu", "", categoryI1, "Bb"));
+
+        //Category number 2
+        Category categoryI2 = new Category("Ta ku sungula Sonto", 2, "I", "2");
+        categories.add(categoryI2);
+        songs.add(new Song(29, "Hosi yi vitana vanhu", "", categoryI2, "C"));
+        songs.add(new Song(30, "Kereke ya wena, Yesu", "J. G. Ebeling", categoryI2, "G"));
+        songs.add(new Song(31, "Hinkwenu lava lulameke", "", categoryI2, "E"));
+
+        //Category number 3
+        Category categoryI3 = new Category("Ta siku ra Xikwembu", 2, "I", "3");
+        categories.add(categoryI3);
+        songs.add(new Song(32, "Siku ra namuntlha", "Ar espanhol", categoryI3, "C"));
+        songs.add(new Song(33, "Hosi yanga, ndza ku lava", "P. Artomius", categoryI3, "C"));
+        songs.add(new Song(34, "Swa nandziha ku hlangana", "D. Bortniansky", categoryI3, "F"));
+        songs.add(new Song(35, "Ku hundze vhiki rin'wana", "L. Spohr", categoryI3, "G"));
+        songs.add(new Song(36, "Tshineleleni vamakwerhu", "C. Malan", categoryI3, "Bb"));
+        songs.add(new Song(308, "Ra nandziha siku leri", "", categoryI3, "Bb"));
+
+        //Category number 4
+        Category categoryI4 = new Category("Ta Rito ra Xikwembu", 2, "I", "4");
+        categories.add(categoryI4);
+        songs.add(new Song(37, "Timbilwini ta hina", "Ar Silesiano", categoryI4, "F"));
+        songs.add(new Song(38, "Timhaka leto hanyisa", "W. A. Mozart", categoryI4, "F"));
+        songs.add(new Song(39, "Rito lero tiya ri na Yehova ntsena", "Ar Silesiano", categoryI4, "C"));
+
+        //Category number 5
+        Category categoryI5 = new Category("Ta ku huma tinhlengeletanweni", 2, "I", "5");
+        categories.add(categoryI5);
+        songs.add(new Song(40, "Ka Yehova Muhanyisi", "", categoryI5, "G"));
+        songs.add(new Song(41, "Xikwembu, hi helekete", "", categoryI5, "G"));
+        songs.add(new Song(42, "O! Xikwembu xo kwetsima", "William Letton Viner", categoryI5, "A"));
+        songs.add(new Song(43, "We Muposinisi Yesu", "Edward John Hopkins", categoryI5, "A"));
+        songs.add(new Song(44, "Xikwembu xo tshembeka", "Melchior Vulpius", categoryI5, "Eb"));
+        songs.add(new Song(309, "Tatana, ha ku tlangela", "T. Clark", categoryI5, "F"));
+
+        //Category number 6
+        Category categoryI6 = new Category("Ta vugandzeli", 2, "I", "6");
+        categories.add(categoryI6);
+        songs.add(new Song(45, "A hi twariseni Muvumbi", "Melchior Vulpius", categoryI6, "D"));
+        songs.add(new Song(46, "O! Hosi, u nga va", "A. Mottu", categoryI6, "C"));
+        songs.add(new Song(47, "Hi mina wa mudyohi", "", categoryI6, "Eb"));
+        songs.add(new Song(48, "Hosi, tsetselela hina!", "A. Mottu", categoryI6, "C"));
+        songs.add(new Song(49, "Hosi, hi twele vusiwana", "", categoryI6, "C"));
+        songs.add(new Song(50, "O! Xinyimpfana xa Xikwembu", "C. Malan", categoryI6, "C"));
+        songs.add(new Song(51, "Landza Yesu", "J. Fawcett", categoryI6, "Ab"));
+        songs.add(new Song(52, "Aleluya!", "Melchior Vulpius", categoryI6, "D"));
+        songs.add(new Song(53, "Etintswalo ta Hosi ya hina", "Chr. Gregor", categoryI6, "D"));
+
+        //Category Level II
+        categories.add(new Category("TA MINKHUVO YA KEREKE", 1, "0", "II"));
+        Category categoryII1 = new Category("Ta ku velekiwa ka Hosi Yesu", 2, "II", "1");
+        //Category number 1
+        categories.add(categoryII1);
+        songs.add(new Song(54, "Le mutini wa Davida", "Henry John Gauntlett", categoryII1, "G"));
+        songs.add(new Song(55, "I mani la yimbelelaka", "", categoryII1, "C"));
+        songs.add(new Song(56, "Mutini wa Betlehema", "W. J. Kirkpatric", categoryII1, "F"));
+        songs.add(new Song(57, "Xana ma n'wi tiva n'wana", "", categoryII1, "D"));
+        songs.add(new Song(58, "Mi nga twa rito rinene", "", categoryII1, "D"));
+        songs.add(new Song(59, "Ri xongile siku leri", "F. Gruber", categoryII1, "C"));
+        songs.add(new Song(60, "Hlamalani, hlamalani!", "", categoryII1, "F"));
+
+        songs.add(new Song(61, "Nowel ro sungula", "Risimu ra Khinsimusi", categoryII1, "C"));
+        songs.add(new Song(62, "A hi tsakeni", "H. G. Naegeli", categoryII1, "C"));
+        songs.add(new Song(310, "Aleluya! A hi tsakeni", "", categoryII1, "A"));
+        songs.add(new Song(311, "I vusiku, hinkwako!", "", categoryII1, "C"));
+        songs.add(new Song(312, "Hatlisani, vapfumeri", "", categoryII1, "C"));
+
+        //Category number 2
+        Category categoryII2 = new Category("Ta ku khangula lembe", 2, "II", "2");
+        categories.add(categoryII2);
+        songs.add(new Song(63, "Leswi lembe ri heleke", "", categoryII2, "Ab"));
+        songs.add(new Song(64, "Tatana, u endlile vanhu", "William Croft", categoryII2, "C"));
+        songs.add(new Song(313, "Lembe rintshwa", "", categoryII2, "Eb"));
+
+        //Category number 3
+        Category categoryII3 = new Category("Ta siku ra mahanga", 2, "II", "3");
+        categories.add(categoryII3);
+        songs.add(new Song(65, "Hosi Yesu o nghena mutini", "", categoryII3, "D"));
+        songs.add(new Song(66, "Yi ta ka wena Hosi yaku", "Hamburger M. Handbuch", categoryII3, "C"));
+        songs.add(new Song(67, "A hi twariseni Hosi Yesu", "", categoryII3, "A"));
+
+        //Category number 4
+        Category categoryII4 = new Category("Ta ku fa ka Hosi Yesu", 2, "II", "4");
+        categories.add(categoryII4);
+        songs.add(new Song(68, "Hi yimbelela Yesu", "L. Mason", categoryII4, "G"));
+        songs.add(new Song(69, "Rifu raku, Muhanyisi", "E. Miller", categoryII4, "Eb"));
+        songs.add(new Song(70, "I mani loya khunaraka", "", categoryII4, "Eb"));
+        songs.add(new Song(71, "Languta Xihambano", "S. S. Wesley", categoryII4, "Eb"));
+        songs.add(new Song(72, "Nyimpfana ya Xikwembu", "S. S. Wesley", categoryII4, "Eb"));
+        songs.add(new Song(73, "Languta, makwerhu, languta", "R. Lowry", categoryII4, "G"));
+        songs.add(new Song(74, "Yesu, makwerhu wa mina", "Palestrina", categoryII4, "D"));
+        songs.add(new Song(75, "O! we, xihambano", "", categoryII4, "C"));
+        songs.add(new Song(76, "Vonani, hi loyi nandza wa Yehova", "G. F. Handel", categoryII4, "F"));
+        songs.add(new Song(77, "Muprofeta wa Yehova", "Swazilandia", categoryII4, "E"));
+        songs.add(new Song(78, "Muvambiwa wa hina", "L. Hassler", categoryII4, "D"));
+        songs.add(new Song(79, "Gandzela Yesu xihambanweni", "E. W. Bullinger", categoryII4, "A"));
+        songs.add(new Song(80, "Rifu ra wena, Hosi Yesu", "Freylinghausen", categoryII4, "Bb"));
+        songs.add(new Song(81, "Vonani Yesu Getsemane!", "H. G. Naegeli", categoryII4, "G"));
+
+        //Category number 5
+        Category categoryII5 = new Category("Ta ku pfuka ka Hosi Yesu", 2, "II", "5");
+        categories.add(categoryII5);
+        songs.add(new Song(82, "Yesu o pfukile ku feni", "", categoryII5, "C"));
+        songs.add(new Song(83, "Aleluya! O pfukile!", "", categoryII5, "G"));
+        songs.add(new Song(84, "O pfukile, Mukutsuri werhu", "F. S. Laur", categoryII5, "C"));
+        songs.add(new Song(85, "O hlule sirha Yesu", "Melchior Teschner", categoryII5, "C"));
+        songs.add(new Song(86, "Ha ku dzunisa", "G. F. Handel", categoryII5, "C"));
+        songs.add(new Song(87, "Yesu Kriste o pfukile", "Lyra Davidica", categoryII5, "C"));
+        songs.add(new Song(314, "Vamakwerhu, i siku ra Paska", "", categoryII5, "C"));
+
+        //Category number 6
+        Category categoryII6 = new Category("Ta ku tlhandluka ka Hosi Yesu", 2, "II", "6");
+        categories.add(categoryII6);
+        songs.add(new Song(88, "Twarisani Yesu", "", categoryII6, "D"));
+        songs.add(new Song(89, "A hi twariseni Hosi Yesu", "G. F. Handel", categoryII6, "G"));
+        songs.add(new Song(90, "Hosi Yesu a hlule sirha", "Negro Spiritual", categoryII6, "F"));
+
+        //Category number 7
+        Category categoryII7 = new Category("Ta Moya lowo kwetsima", 2, "II", "7");
+        categories.add(categoryII7);
+        songs.add(new Song(91, "Moya wanga wa ku lava", "Ph. Nicolai", categoryII7, "F"));
+        songs.add(new Song(92, "Tana, Moya wo saseka", "", categoryII7, "Eb"));
+        songs.add(new Song(93, "Oho, Moya wa Yehova", "G. J. Vogler", categoryII7, "A"));
+        songs.add(new Song(94, "Emutini wa le Sion", "G. Makavi", categoryII7, "D"));
+        songs.add(new Song(95, "Moya lowu humaka tilweni", "Th. Bovet", categoryII7, "E"));
+        songs.add(new Song(96, "Hi vavisiwa hi mumu", "", categoryII7, "Eb"));
+
+        //Category number 8
+        Category categoryII8 = new Category("Ta masimu", 2, "II", "8");
+        categories.add(categoryII8);
+        songs.add(new Song(97, "Tiko ra hina", "W. H. Monk", categoryII8, "Eb"));
+        songs.add(new Song(98, "Ha ku nkhensa", "M. E. M.", categoryII8, "G"));
+        songs.add(new Song(99, "Loko xirimo xi fika", "D. C. Marivate", categoryII8, "Eb"));
+        songs.add(new Song(100, "Timbewu ta hina", "M. E. M.", categoryII8, "C"));
+
+        //Category Level III
+        categories.add(new Category("TA KU HANYA KA VANA VA XIKWEMBU", 1, "0", "III"));
+        //Category number 1
+        Category categoryIII1 = new Category("Ta ku vitana vanhu", 2, "III", "1");
+        categories.add(categoryIII1);
+        songs.add(new Song(101, "N'wina lami humaka tikweni", "", categoryIII1, "C"));
+        songs.add(new Song(102, "N'wana wa ripfalo", "", categoryIII1, "Bb"));
+        songs.add(new Song(103, "Nakulorhi!", "", categoryIII1, "F"));
+        songs.add(new Song(104, "Murisi lonene", "", categoryIII1, "A"));
+        songs.add(new Song(105, "Tana ka Yesu, u nga hlweri", "G. F. Root", categoryIII1, "Bb"));
+        songs.add(new Song(106, "Tana, tana", "W. H. Doane", categoryIII1, "Eb"));
+        songs.add(new Song(107, "Henhla ka lwandle", "Ph. P. Bliss", categoryIII1, "Bb"));
+        songs.add(new Song(108, "Yingisa, we makwerhu", "", categoryIII1, "E"));
+        songs.add(new Song(109, "Yesu wa gongondza nyangweni", "", categoryIII1, "C"));
+        songs.add(new Song(110, "Landza Yesu", "J. Fawcett", categoryIII1, "Ab"));
+
+        songs.add(new Song(111, "Hi mina, ndzi yima nyangweni", "", categoryIII1, "F"));
+        songs.add(new Song(112, "Vutomini lebyi nga ta ta", "", categoryIII1, "F"));
+        songs.add(new Song(113, "Yo! Vakwerhu lavanyingi", "", categoryIII1, "G"));
+        songs.add(new Song(114, "Wena N'wana wa Davida", "Daniel Read", categoryIII1, "G"));
+        songs.add(new Song(115, "Wena, u rilaka", "Ph. P. Bliss", categoryIII1, "Bb"));
+        songs.add(new Song(116, "Yingisani, Yingisani", "Geo. F. Root", categoryIII1, "Eb"));
+        songs.add(new Song(117, "Hosi yi ku vitanile", "", categoryIII1, "Ab"));
+        songs.add(new Song(118, "Hinkwenu vo lava vutomi", "", categoryIII1, "E"));
+        songs.add(new Song(119, "Tshinelela! tshinelela!", "Negro Spiritual", categoryIII1, "F"));
+
+        songs.add(new Song(120, "Vamatiko Yingisani", "I. McGranahan", categoryIII1, "G"));
+        songs.add(new Song(121, "Xana mi tiva?", "Sankey", categoryIII1, "F"));
+        songs.add(new Song(122, "Ndzi ya tilweni!", "Negro Spiritual", categoryIII1, "E"));
+        songs.add(new Song(123, "Loko mi lava ku tiva", "C. Brentano", categoryIII1, "F"));
+        songs.add(new Song(315, "Yingisa mhaka ya Hosi", "", categoryIII1, "C"));
+
+        //Category number 2
+        Category categoryIII2 = new Category("Ta ku tisola ni ku pfumela", 2, "III", "2");
+        categories.add(categoryIII2);
+        songs.add(new Song(124, "Hosi, hi tisa swirilo", "", categoryIII2, "D"));
+        songs.add(new Song(125, "U nkulukumba, Yehova!", "J. B. Dykes", categoryIII2, "Eb"));
+        songs.add(new Song(126, "Ndzi ni khombo, ndzi ta ntsena", "", categoryIII2, "G"));
+        songs.add(new Song(127, "Ndzi ni khombo, ndzi ta ntsena", "Bradbury", categoryIII2, "Eb"));
+        songs.add(new Song(128, "We, Xikwembu Tatana", "E. A. J. Monaisa", categoryIII2, "Eb"));
+        songs.add(new Song(129, "Hosi Yesu, a swi kona", "", categoryIII2, "C"));
+        songs.add(new Song(130, "Hi mina wa mudyohi", "", categoryIII2, "Eb"));
+
+        songs.add(new Song(131, "Ndzi ta ka wena, Hosi", "G. Coll", categoryIII2, "F"));
+        songs.add(new Song(132, "Ndza tilaya, Nkulukumba", "", categoryIII2, "A"));
+        songs.add(new Song(133, "Rendzwen'ra mina, misaveni", "", categoryIII2, "G"));
+        songs.add(new Song(134, "Hinkwerhu vanhu hi dyohile", "Sir. H. Oakeley", categoryIII2, "A"));
+        songs.add(new Song(135, "Ndzi rivaleriwile", "S. Malale", categoryIII2, "F"));
+        songs.add(new Song(136, "A wu te nfumo waku", "Melchior Teschner", categoryIII2, "C"));
+        songs.add(new Song(137, "Ndzi xanisiwa hi swivi swanga", "Sankey-Stebbins", categoryIII2, "A"));
+        songs.add(new Song(138, "Yingisani, n'wina vamakwerhu!", "D. C. Marivate", categoryIII2, "D"));
+        songs.add(new Song(316, "Oho, Yesu, Hosi yanga", "", categoryIII2, "C"));
+
+        //Category number 3
+        Category categoryIII3 = new Category("Ta ku tshemba Muponisi", 2, "III", "3");
+        categories.add(categoryIII3);
+        songs.add(new Song(139, "Ndza ku nkhensa", "", categoryIII3, "F"));
+        songs.add(new Song(140, "Ndza swi rhandza ku yingisa wena", "C. H. Purday", categoryIII3, "G"));
+        songs.add(new Song(141, "Ndzi wa wena", "", categoryIII3, "Ab"));
+        songs.add(new Song(142, "Ndzi veleka hi Yesu", "W. H. Doane", categoryIII3, "G"));
+        songs.add(new Song(143, "Kunene ndzi swi kumile", "Frank", categoryIII3, "F"));
+        songs.add(new Song(144, "Yesu, Mukutsuri", "R. Lowry", categoryIII3, "Ab"));
+        songs.add(new Song(145, "Swa nandziha, Hosi yanga", "", categoryIII3, "Ab"));
+        songs.add(new Song(146, "Tiko leri ri tele swo biha", "", categoryIII3, "F"));
+        songs.add(new Song(147, "Mbilu yanga yi kota ku rhula", "G. T. Caldbeck", categoryIII3, "C"));
+        songs.add(new Song(148, "Ndzi tshembile Murise", "", categoryIII3, "D"));
+        songs.add(new Song(149, "Kusuhi na wena", "L. Mason", categoryIII3, "G"));
+        songs.add(new Song(150, "Ka Yesu ndzi langutile", "F. Mendelssohn", categoryIII3, "G"));
+
+        songs.add(new Song(151, "Yesu, Hosi ya rirhandzu", "John Stainer", categoryIII3, "F"));
+        songs.add(new Song(152, "Hinkwako na Yesu", "", categoryIII3, "Eb"));
+        songs.add(new Song(153, "Yesu a ndzi tiva", "Negro Spiritual", categoryIII3, "F"));
+        songs.add(new Song(154, "Yesu, hi wena kunene", "", categoryIII3, "E"));
+        songs.add(new Song(155, "Emintlhan'wini leyi lovisaka", "W. H. Monk", categoryIII3, "Eb"));
+        songs.add(new Song(156, "Ndzi tlakisa moya wanga", "", categoryIII3, "G"));
+        songs.add(new Song(157, "Yehova ndzi n'wi langutele", "Robert Simpson", categoryIII3, "A"));
+        songs.add(new Song(158, "Namuntlha ndzi kumile xitsakiso", "Jean Sibelius", categoryIII3, "F"));
+        songs.add(new Song(159, "Ndzi nghenise khokholweni", "Hartsough", categoryIII3, "Eb"));
+        songs.add(new Song(160, "Hosi yi le xikarhi ka hina", "", categoryIII3, "E"));
+        songs.add(new Song(161, "Ka wena, o! Yesu!", "D. Bortniansky", categoryIII3, "C"));
+
+        //Category number 4
+        Category categoryIII4 = new Category("Ta ku tsakela ku pona", 2, "III", "4");
+        categories.add(categoryIII4);
+        songs.add(new Song(162, "Ra nandziha", "", categoryIII4, "A"));
+        songs.add(new Song(163, "Nkhensa, moya wanga", "R. T. Caluza", categoryIII4, "G"));
+        songs.add(new Song(164, "Ndzi kumile nakulorhi", "", categoryIII4, "A"));
+        songs.add(new Song(165, "Ndzi twa rito rin'wana", "Dykes", categoryIII4, "Ab"));
+        songs.add(new Song(166, "Ndzi ta nkhensa hi masiku", "", categoryIII4, "D"));
+        songs.add(new Song(167, "Twanani rito lerikulu", "McGranahan", categoryIII4, "D"));
+        songs.add(new Song(168, "A hi tsakeni, vamakwerhu", "", categoryIII4, "A"));
+        songs.add(new Song(169, "Yesu o ndzi ponisile", "Ch. H. Gabriel", categoryIII4, "A"));
+        songs.add(new Song(317, "A ndzi lahlekile", "", categoryIII4, "C"));
+
+        //Category number 5
+        Category categoryIII5 = new Category("Ta ku tinyiketa ka Muponisi", 2, "III", "5");
+        categories.add(categoryIII5);
+        songs.add(new Song(170, "Xikwembu, Hosi ya mina", "", categoryIII5, "F"));
+        songs.add(new Song(171, "Mukutsuri, Hosi ya mina", "R. W. Beaty", categoryIII5, "F"));
+        songs.add(new Song(172, "Khoma voko ra mina", "F. Silcher", categoryIII5, "F"));
+        songs.add(new Song(173, "Swa nandziha ku ku landza", "M. Russel", categoryIII5, "Eb"));
+        songs.add(new Song(174, "Moya ni miri wanga", "J. F. Knapp", categoryIII5, "Eb"));
+        songs.add(new Song(175, "Ndza ku lava, bya ha ku xa", "F. Mendelssohn", categoryIII5, "D"));
+        songs.add(new Song(176, "Hosi Yesu, Muhanyisi", "", categoryIII5, "E"));
+        songs.add(new Song(177, "Mbilwini ya mina, Yesu", "", categoryIII5, "G"));
+        songs.add(new Song(178, "Yesu, loya ndzi feleke", "F. A. Schulz", categoryIII5, "F"));
+        songs.add(new Song(179, "Ndzi bohe, wena Hosi", "G. W. Martin", categoryIII5, "E"));
+        songs.add(new Song(180, "Ndzi lava ku va munhu wa Yesu", "Negro Spiritual", categoryIII5, "F"));
+
+        songs.add(new Song(181, "Ndzi nyike, Tatana!", "P. P. Bliss", categoryIII5, "Eb"));
+        songs.add(new Song(182, "Mbilwini yanga, Hosi", "John Knox Bokwe", categoryIII5, "F"));
+        songs.add(new Song(183, "Ndzi wa wena, Hosi Yesu", "", categoryIII5, "Eb"));
+        songs.add(new Song(184, "O! Yesu, Hosi ya tintswalo!", "A. L. Peace", categoryIII5, "Ab"));
+        songs.add(new Song(185, "Tatana wa rirhandzu", "", categoryIII5, "E"));
+        songs.add(new Song(318, "Yesu la ndzi rhandzaka", "", categoryIII5, "Eb"));
+        songs.add(new Song(319, "Ndleleni yaku, ndzi rhandza", "", categoryIII5, "A"));
+
+        //Category number 6
+        Category categoryIII6 = new Category("Ta ku lwa ni ku hlula ka kereke", 2, "III", "6");
+        categories.add(categoryIII6);
+        songs.add(new Song(186, "Sumani tinsimu ta nyimpi", "T. R Southgate", categoryIII6, "G"));
+        songs.add(new Song(187, "Tshemba Yesu, Mukriste", "", categoryIII6, "F"));
+        songs.add(new Song(188, "Pfukani, n'we, tinhenha", "Ch. Lockhark", categoryIII6, "Eb"));
+        songs.add(new Song(189, "Hi siku ra khombo", "H. R. Bishop", categoryIII6, "F"));
+        songs.add(new Song(190, "Phalalani, tinhenha", "A. S. Sullivan", categoryIII6, "F"));
+
+        songs.add(new Song(191, "Yesu i Hosi ya hina", "", categoryIII6, "G"));
+        songs.add(new Song(192, "Rihlampfu ranga i Yesu", "M. Luther", categoryIII6, "D"));
+        songs.add(new Song(193, "Hloma matlhari", "John Hatton", categoryIII6, "Eb"));
+        songs.add(new Song(194, "Hitekani, loko dyambu ri xile", "S. Zuberbuhler", categoryIII6, "C"));
+        songs.add(new Song(195, "A ku na munhu", "Negro Spiritual", categoryIII6, "G"));
+        songs.add(new Song(196, "Mbilwini yanga Hosi!", "Swazilandia", categoryIII6, "G"));
+        songs.add(new Song(197, "Nyimpi leyi hi yi lwaka", "J. Haydn", categoryIII6, "G"));
+        songs.add(new Song(198, "Xidzedze", "D. C. Marivate", categoryIII6, "G"));
+
+        //Category number 7
+        Category categoryIII7 = new Category("Mahlomulweni", 2, "III", "7");
+        categories.add(categoryIII7);
+        songs.add(new Song(199, "Timhaka leti tikaka", "Converse", categoryIII7, "F"));
+        songs.add(new Song(200, "Tshika, wena, moya wanga", "", categoryIII7, "E"));
+
+        songs.add(new Song(201, "Byatso byi famba swinene", "", categoryIII7, "C"));
+        songs.add(new Song(202, "Hosi ni Tatana wa mina", "", categoryIII7, "Eb"));
+        songs.add(new Song(203, "We, Yehova, Hosi yanga", "", categoryIII7, "F"));
+        songs.add(new Song(204, "Ndzi mufambi misaveni", "Hastings", categoryIII7, "D"));
+        songs.add(new Song(205, "Ku kotisa mhalamhala", "", categoryIII7, "G"));
+        songs.add(new Song(206, "Endla, Hosi yanga", "C. M. Weber", categoryIII7, "Eb"));
+        songs.add(new Song(207, "Eku vilela hinkwako", "Negro Spiritual", categoryIII7, "G"));
+        songs.add(new Song(208, "Yingisa, Hosi, n'wanaku", "R. Lowry", categoryIII7, "G"));
+        songs.add(new Song(320, "U nga heli mbilu", "G. T. Webb", categoryIII7, "F"));
+        songs.add(new Song(321, "A khumba ntsena nkhancu", "", categoryIII7, "D"));
+        songs.add(new Song(322, "Loko ndzi vaviseka", "", categoryIII7, "F"));
+
+        //Category number 8
+        Category categoryIII8 = new Category("Ta ku hlangana na Hosi Yesu", 2, "III", "8");
+        categories.add(categoryIII8);
+        songs.add(new Song(209, "Yesu, fuma mbilu yanga", "", categoryIII8, "Ab"));
+        songs.add(new Song(210, "Yesu! Yesu! Mukutsuri wa mina", "J. Brahms", categoryIII8, "Eb"));
+
+        songs.add(new Song(211, "Ntshurini wa misava leyi", "A. Bost", categoryIII8, "C"));
+        songs.add(new Song(212, "Rirhandzu ra Yesu Kriste", "", categoryIII8, "C"));
+        songs.add(new Song(213, "A hi tlangeleni rirhandzu", "", categoryIII8, "D"));
+        songs.add(new Song(214, "Wa ndzi rhandza", "", categoryIII8, "G"));
+
+        //Category number 9
+        Category categoryIII9 = new Category("Ta ku rhurha ni ta vutomi bya tilo", 2, "III", "9");
+        categories.add(categoryIII9);
+        songs.add(new Song(215, "Muti wo saseka ngopfu", "G. F. Handel", categoryIII9, "F"));
+        songs.add(new Song(216, "Tatana wa vitana", "", categoryIII9, "F"));
+        songs.add(new Song(217, "Hi nkhensa rifu ra Yesu", "", categoryIII9, "Eb"));
+        songs.add(new Song(218, "Ndzi muendzi misaveni", "Melodia Popular", categoryIII9, "D"));
+        songs.add(new Song(219, "Masiku yerhu ma fana", "", categoryIII9, "C"));
+        songs.add(new Song(220, "Masiku yanga ma hela", "R. Lowry", categoryIII9, "Eb"));
+
+        songs.add(new Song(221, "Le tilweni", "Ch. F. Volgtlaender", categoryIII9, "C"));
+        songs.add(new Song(222, "Tsundzukani kaya tilweni", "", categoryIII9, "A"));
+        songs.add(new Song(223, "Tiko ra Xikwembu ri kona", "", categoryIII9, "G"));
+        songs.add(new Song(224, "A hi sukeni, hi lava Kanana", "", categoryIII9, "F"));
+        songs.add(new Song(225, "Yerusalem wa le henhla", "", categoryIII9, "Eb"));
+        songs.add(new Song(226, "M'bamani", "", categoryIII9, "Eb"));
+        songs.add(new Song(227, "Vaweti, hi welela", "", categoryIII9, "A"));
+        songs.add(new Song(228, "Swa nandziha ku tsundzuka", "", categoryIII9, "F"));
+        songs.add(new Song(229, "Ku ni tiko ro saseka", "", categoryIII9, "Eb"));
+        songs.add(new Song(230, "Langutani Hosi Yesu", "", categoryIII9, "C"));
+
+        songs.add(new Song(323, "Xana vamakwerhu", "", categoryIII9, "F"));
+        songs.add(new Song(324, "Sweswi hi sukile", "", categoryIII9, "G"));
+        songs.add(new Song(325, "Vanhu hinkwavo va matiko", "", categoryIII9, "C"));
+
+
+        //Category Level III
+        categories.add(new Category("TA KEREKE NI DYANGU NI TIKO", 1, "0", "IV"));
+        //Category number 1
+        Category categoryIV1 = new Category("Ta ku tekana", 2, "IV", "1");
+        categories.add(categoryIV1);
+        songs.add(new Song(231, "Xewani, vatekani", "Corelli", categoryIV1, "C"));
+        songs.add(new Song(232, "Hosi, amukela sweswi", "J. B. Dykes", categoryIV1, "D"));
+        songs.add(new Song(233, "Khale loko a hi ri vatsanana", "Ph. P. Bliss", categoryIV1, "D"));
+        songs.add(new Song(234, "Hi nkhensile hi timbilu", "J. B. Dykes", categoryIV1, "C"));
+        songs.add(new Song(235, "Xikwembu, vateki lava", "", categoryIV1, "Eb"));
+        songs.add(new Song(236, "N'we vamakwerhu, ha mi tlangela", "", categoryIV1, "D"));
+
+        //Category number 2
+        Category categoryIV2 = new Category("Ta ku khuvuriwa ka vapfumeri ni ta kuu vuyisa vana", 2, "IV", "2");
+        categories.add(categoryIV2);
+        songs.add(new Song(237, "Tiya, nakulorhi", "I. Pleyel", categoryIV2, "Bb"));
+        songs.add(new Song(238, "Hosi Yesu, Murisi lonene", "", categoryIV2, "Eb"));
+        songs.add(new Song(239, "Le Galilea", "I. D. Sankey", categoryIV2, "Eb"));
+        songs.add(new Song(240, "Tiyisa, mukhuvuriwa", "William Boyd", categoryIV2, "G"));
+        songs.add(new Song(326, "Xikarhi ka hina", "", categoryIV2, "F"));
+
+        //Category number 3
+        Category categoryIV3 = new Category("Ta Xilalelo", 2, "IV", "3");
+        categories.add(categoryIV3);
+        songs.add(new Song(241, "Yesu nkateko wa timbilu", "H. P. Smith", categoryIV3, "E"));
+        songs.add(new Song(242, "U hi phamerile", "P. A. Bost", categoryIV3, "G"));
+        songs.add(new Song(243, "Ndza ku hlalela, wena", "", categoryIV3, "F"));
+        songs.add(new Song(244, "Yesu o fambile", "H. G. Naegeli", categoryIV3, "G"));
+        songs.add(new Song(245, "Ndzi tshinelela wena", "R. Saillens", categoryIV3, "G"));
+
+        //Category number 4
+        Category categoryIV4 = new Category("Ta ku khanguriwa ka yindlu ya Xikwembu", 2, "IV", "4");
+        categories.add(categoryIV4);
+        songs.add(new Song(246, "Hi tlangerile, vatatana (vamamana)", "T. R. Matthews", categoryIV4, "Eb"));
+        songs.add(new Song(247, "Namuntlha, siku lerikulu", "A. L. Peace", categoryIV4, "Ab"));
+        songs.add(new Song(248, "Fambani, mi tlakusa matihlo", "J. Bortnianski", categoryIV4, "C"));
+        songs.add(new Song(249, "A hi nkhenseni, a hi vongeni", "", categoryIV4, "Bb"));
+        songs.add(new Song(250, "Mahungu lamanene", "D. C. Marivate", categoryIV4, "Eb"));
+        songs.add(new Song(327, "Malandza ya Yehova", "", categoryIV4, "F"));
+        songs.add(new Song(328, "Hi yimbelela tiko", "", categoryIV4, "C"));
+
+        //Category number 5
+        Category categoryIV5 = new Category("Ta mixo ni madyambu", 2, "IV", "5");
+        categories.add(categoryIV5);
+        songs.add(new Song(251, "Yehova Xikwembu", "R. Lowry", categoryIV5, "G"));
+        songs.add(new Song(252, "Vusiku byi hundzile", "L. Mason", categoryIV5, "F"));
+        songs.add(new Song(253, "Leswi dyambu ri tsuvukeke", "L. Neiss", categoryIV5, "Eb"));
+        songs.add(new Song(254, "N'winyi wa ku vonakala", "W. Bradbury", categoryIV5, "Ab"));
+        songs.add(new Song(255, "Leswi dyambu ri nga pela", "W. Bradbury", categoryIV5, "Ab"));
+        songs.add(new Song(256, "Xwana, Hosi, hikuva ri perile", "W. H. Monk", categoryIV5, "Eb"));
+        songs.add(new Song(257, "Tatani, vana va Tatana", "D. Bortniansky", categoryIV5, "F"));
+        songs.add(new Song(258, "Namuntlha siku ri herile", "C. C. Scholefield", categoryIV5, "A"));
+        songs.add(new Song(259, "Tanani, hi hlengeletana", "", categoryIV5, "G"));
+        songs.add(new Song(260, "Ndza khongeala, ri perile", "Geo. Stebbings", categoryIV5, "A"));
+
+
+        //Category number 6
+        Category categoryIV6 = new Category("Ta ndyangu", 2, "IV", "6");
+        categories.add(categoryIV6);
+        songs.add(new Song(261, "Ku saseke miti leyi", "D. Bortniansky", categoryIV6, "Eb"));
+        songs.add(new Song(262, "Ku kateka munhu", "F. J. Haydn", categoryIV6, "G"));
+        songs.add(new Song(263, "Hosi, mindyangu ya hina", "Hurndall", categoryIV6, "F"));
+
+
+        //Category number 7
+        Category categoryIV7 = new Category("Ta lavantshwa", 2, "IV", "7");
+        categories.add(categoryIV7);
+        songs.add(new Song(264, "N'we madjaha, tsundzukani!", "", categoryIV7, "G"));
+        songs.add(new Song(265, "Matimba ya mbilu", "", categoryIV7, "F"));
+        songs.add(new Song(266, "Masocha ya Hosi", "Adeste Fideles", categoryIV7, "G"));
+        songs.add(new Song(267, "O! Yesu, Muhanyisi!", "Negro Spiritual", categoryIV7, "F"));
+        songs.add(new Song(268, "Okani endzilo", "", categoryIV7, "F"));
+        songs.add(new Song(269, "Loko hi hlangana", "J. P. E. Hartmann", categoryIV7, "F"));
+        songs.add(new Song(270, "Ndzi navela ku tirhela Yesu!", "", categoryIV7, "F"));
+
+        songs.add(new Song(271, "E Rito ra Xikwembu", "", categoryIV7, "F"));
+        songs.add(new Song(272, "Erin'wanyana siku", "", categoryIV7, "F"));
+        songs.add(new Song(273, "Hi dyondzise ku endla", "", categoryIV7, "G"));
+        songs.add(new Song(274, "We, Davida, u yimba harpa", "", categoryIV7, "F"));
+        songs.add(new Song(275, "Daniel", "", categoryIV7, "D"));
+
+        //Category number 8
+        Category categoryIV8 = new Category("Ta ku hlangana ka timbilu ta lavo kwetsima", 2, "IV", "8");
+        categories.add(categoryIV8);
+        songs.add(new Song(276, "Hi li: Xawan", "", categoryIV8, "C"));
+        songs.add(new Song(277, "Hosi a yimi heketeni", "", categoryIV8, "D"));
+        songs.add(new Song(278, "A hi nkhensen nhlengeletanu", "C. Malan", categoryIV8, "C"));
+        songs.add(new Song(279, "Ku nandrika ka wo ntlhanganu", "R. T. Caluza", categoryIV8, "Bb"));
+
+        //Category number 9
+        Category categoryIV9 = new Category("Ta ku fambisa Rito", 2, "IV", "9");
+        categories.add(categoryIV9);
+        songs.add(new Song(280, "Hatlisani! Mi ya va vitana", "", categoryIV9, "F"));
+        songs.add(new Song(281, "Vamatiko va lovile", "", categoryIV9, "C"));
+        songs.add(new Song(282, "Byala", "", categoryIV9, "C"));
+        songs.add(new Song(283, "Pfuka, nyimpi ya Yesu", "G. T. Webb", categoryIV9, "Bb"));
+        songs.add(new Song(284, "A hi pfukeni, Hi ya lwela", "", categoryIV9, "C"));
+        songs.add(new Song(285, "Vonani swinyimpfana", "", categoryIV9, "Eb"));
+        songs.add(new Song(286, "Pfuka, nyimpi ya Yehova", "", categoryIV9, "G"));
+        songs.add(new Song(287, "Huwa ya Makedonia", "", categoryIV9, "Eb"));
+        songs.add(new Song(329, "Twanani nkosi wa matiko", "", categoryIV9, "C"));
+        songs.add(new Song(330, "Hloma nyimpi ya Hosi", "", categoryIV9, "Bb"));
+
+        //Category number 10
+        Category categoryIV10 = new Category("Ta ku vuya ka Hosi Yesu", 2, "IV", "10");
+        categories.add(categoryIV10);
+        songs.add(new Song(288, "Vonani, wa ta, Hosi Yesu", "Clark", categoryIV10, "Eb"));
+        songs.add(new Song(289, "Tana, O! Yesu", "H. Lutteroth", categoryIV10, "Eb"));
+        songs.add(new Song(290, "Pfukani, mi hiteka sweswi", "G. F. Handel", categoryIV10, "Eb"));
+
+        //Category number 11
+        Category categoryIV11 = new Category("Ta tiko", 2, "IV", "11");
+        categories.add(categoryIV11);
+        songs.add(new Song(291, "Etiko ra hina", "D. Bortnianski", categoryIV11, "C"));
+        songs.add(new Song(292, "Loko Yehova ingi a hi tshika", "Genevan Psalter", categoryIV11, "G"));
+        songs.add(new Song(293, "Hosi, katekisa Afrika!", "E. Sontonga", categoryIV11, "Eb"));
+        songs.add(new Song(294, "O! Hosi, katekisa etiko", "J. Dalcroze", categoryIV11, "C"));
+
+        //Category number 12
+        Category categoryIV12 = new Category("Ta vatitsoni", 2, "IV", "12");
+        categories.add(categoryIV12);
+        songs.add(new Song(295, "Vandla lerinene", "", categoryIV12, "Bb"));
+        songs.add(new Song(296, "Yimani, vatitsoni, yimani!", "", categoryIV12, "G"));
+        songs.add(new Song(297, "A hi fambeni, hi tiyisela", "", categoryIV12, "F"));
+        songs.add(new Song(298, "Ndzi famba na ndzi tsakile", "Negro Spiritual", categoryIV12, "C"));
+        songs.add(new Song(299, "Tiko ra hina ra lahleka", "J. Hatton", categoryIV12, "Eb"));
+        songs.add(new Song(300, "Yingisani n'we vamakwerhu", "R. T. Caluza", categoryIV12, "Bb"));
+
+        // Add songs to FirebaseStore
+        CollectionReference reference = firestore.collection(AppConstants.TV_TSONGA_BOOK);
+        for (Song song : songs) {
+            reference.document(song.getNumber() + "").set(song);
+        }
+
+        // Add categories to FirebaseStore
+        CollectionReference categoryReference = firestore.collection(AppConstants.TV_CATEGORY_TG);
+        for (Category category : categories) {
+            categoryReference.add(category);
         }
     }
 
@@ -5165,9 +6209,27 @@ public class CantemosFragment extends Fragment implements View.OnClickListener, 
     public void onSongSelected(DocumentSnapshot song) {
         // Go to the details page for the selected restaurant
 
-//        Intent intent = new Intent(this, SongDetailActivity.class);
-//        intent.putExtra(SongDetailActivity.KEY_SONG_ID, song.getId());
-//
-//        startActivity(intent);
+        Intent intent = new Intent(getActivity(), SongDetailActivity.class);
+        intent.putExtra(AppConstants.BOOK, book);
+        intent.putExtra(AppConstants.SONG_ID, song.getId());
+
+        startActivity(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (bundleRecyclerViewState != null) {
+            recyclerViewState = bundleRecyclerViewState.getParcelable(STATE);
+            recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        bundleRecyclerViewState = new Bundle();
+        recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
+        bundleRecyclerViewState.putParcelable(STATE, recyclerViewState);
     }
 }

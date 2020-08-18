@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.CantemosFragment">
+    tools:context=".fragment.SongListFragment">
 
     <!-- Main Song recycler -->
     <androidx.recyclerview.widget.RecyclerView
@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:id="@+id/fab_addsongs"
         android:layout_gravity="center|bottom"
-        android:visibility="visible"
+        android:visibility="gone"
         android:src="@drawable/ic_menu_send"
         android:layout_height="wrap_content"/>
 

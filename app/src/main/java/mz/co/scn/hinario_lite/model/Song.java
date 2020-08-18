@@ -49,6 +49,22 @@ public class Song {
         this.composer = composer;
     }
 
+    /**
+     *
+     * @param number
+     * @param title
+     * @param composer
+     * @param category
+     * @param key
+     */
+    public Song(int number, String title, String composer, Category category, String key) {
+        this.number = number;
+        this.title = title;
+        this.composer = composer;
+        this.category = category;
+        this.key = key;
+    }
+
 
     /**
      * @return title
@@ -196,5 +212,5 @@ public class Song {
     public void setLink(String link) {
         this.link = link;
     }
-    
+
 }

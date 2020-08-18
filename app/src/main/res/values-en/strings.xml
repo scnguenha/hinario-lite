@@ -59,4 +59,5 @@
     <string name="lblChurch">Church:</string>
     <string name="lblPresbiterian">Presbyterian Church of Mozambique</string>
     <string name="lblPrivacy_policy">Privacy Policy</string>
+    <string name="lbl_go_to_page">Ir ao Hino</string>
 </resources>
