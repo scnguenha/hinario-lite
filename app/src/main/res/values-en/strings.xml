@@ -4,7 +4,7 @@
     <string name="lblComposer">Composer</string>
     <string name="lblContacts">Contacts</string>
     <string name="lblFerramentas">Tools</string>
-    <string name="lblPesquisar">Search</string>
+    <string name="lblPesquisar">Filter</string>
     <string name="lblSettings">Settings</string>
     <string name="lblSongs">Songs</string>
     <string name="lblTitle">Title</string>

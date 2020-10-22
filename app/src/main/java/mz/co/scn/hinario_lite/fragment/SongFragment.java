@@ -2,6 +2,7 @@ package mz.co.scn.hinario_lite.fragment;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mz.co.scn.hinario_lite.R;
+import mz.co.scn.hinario_lite.activity.OpenPdfActivity;
 import mz.co.scn.hinario_lite.model.Song;
 import mz.co.scn.hinario_lite.util.AppConstants;
 
@@ -205,6 +207,16 @@ public class SongFragment extends BaseFragment {
             view.findViewById(R.id.ll_key).setVisibility(View.VISIBLE);
             ((TextView) view.findViewById(R.id.tv_key)).setText(song.getKey());
         }
+
+        if (song.getLink() != null) {
+            view.findViewById(R.id.fab_pdf).setVisibility(View.VISIBLE);
+        }
+
+        view.findViewById(R.id.fab_pdf).setOnClickListener(v -> {
+            Intent i = new Intent(getActivity(), OpenPdfActivity.class);
+            i.putExtra("url", song.getLink());
+            startActivity(i);
+        });
 
         view.findViewById(R.id.ll_key).setOnClickListener(v -> {
             playAssetSound(getContext(), "key/" + song.getKey() + ".mid");

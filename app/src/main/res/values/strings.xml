@@ -20,7 +20,7 @@
     <string name="lblHinarios">Livros</string>
     <string name="lblTitle">Título</string>
     <string name="lblComposer">Compositor</string>
-    <string name="lblPesquisar">Pesquisar</string>
+    <string name="lblPesquisar">Filtrar</string>
     <string name="lblSongs">Canções</string>
     <string name="lbl_of">de</string>
 

@@ -65,7 +65,6 @@ public class Song {
         this.key = key;
     }
 
-
     /**
      * @return title
      */

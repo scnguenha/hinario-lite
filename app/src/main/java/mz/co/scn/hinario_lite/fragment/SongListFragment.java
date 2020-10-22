@@ -5,9 +5,12 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,7 +22,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,12 +44,15 @@ public class SongListFragment extends BaseFragment implements View.OnClickListen
     private Parcelable recyclerViewState = null;
     private static String STATE = SongListFragment.class.getName();
 
+    private MenuItem totalSongs;
+    public SearchView searchView;
     private RecyclerView recyclerView;
 
     private FirebaseFirestore firestore;
     private Query query;
 
     private SongAdapter adapter;
+    private SongAdapter.OnSongSelectedListener listener;
 
     public SongListFragment() {
         // Required empty public constructor
@@ -67,11 +72,12 @@ public class SongListFragment extends BaseFragment implements View.OnClickListen
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_cantemos, container, false);
-
+        setHasOptionsMenu(true);
         recyclerView = v.findViewById(R.id.recycler_view);
 
         initFireStore();
         initRecyclerView();
+        listener = this;
 
         v.findViewById(R.id.fab_addsongs).setOnClickListener(v1 -> {
             generateCantemosSongs();
@@ -6214,6 +6220,72 @@ public class SongListFragment extends BaseFragment implements View.OnClickListen
         intent.putExtra(AppConstants.SONG_ID, song.getId());
 
         startActivity(intent);
+    }
+
+    public void setSongCount() {
+        CollectionReference reference = firestore.collection(book);
+        reference.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                totalSongs.setTitle(task.getResult().size() + "");
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+        });
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        totalSongs = menu.findItem(R.id.total_songs);
+//        // Associate searchable configuration with the SearchView
+//        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+//        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+        //set the total number of items in recycler view
+        setSongCount();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            CollectionReference reference = firestore.collection(book);
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                Query query = firestore.collection(book)
+                        .orderBy("title")
+                        .startAt(newText);
+                //.whereArrayContains("title", newText);
+                //.whereEqualTo("number", newText);
+                //.whereArrayContains("title", newText);
+                //query = reference.orderBy("title").startAt(newText);
+                adapter.setQuery(query);
+                adapter.notifyDataSetChanged();
+                // totalSongs.setTitle(adapter.getItemCount() + "");
+//                SongAdapter adapter = new SongAdapter(query, listener) {
+//                    @Override
+//                    protected void onDataChanged() {
+//                        // Show/hide content if the query return empty.
+//                        if (getItemCount() == 0) {
+//                            recyclerView.setVisibility(View.GONE);
+//                        } else {
+//                            recyclerView.setVisibility(View.VISIBLE);
+//                        }
+//                    }
+//
+//                    @Override
+//                    protected void onError(FirebaseFirestoreException e) {
+//                        // Show a snackbar on errors
+//                        Snackbar.make(getView().findViewById(android.R.id.content), "Error: check logs for info.", Snackbar.LENGTH_LONG).show();
+//                    }
+//                };
+
+                return true;
+            }
+        });
     }
 
     @Override
